@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy Linux ADK Web to GitHub Pages
 
 on:
   push:
@@ -29,7 +29,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: '.'  # Uploads index.html from the root directory
 
       - name: Deploy to GitHub Pages
         id: deployment
