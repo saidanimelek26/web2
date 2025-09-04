@@ -29,22 +29,24 @@
   <div id="root"></div>
   <script type="text/babel">
     const defaultAccessory = {
-      device: "18d1:4e42",
-      manufacturer: "Google, Inc.",
-      model: "AccessoryChat",
+      device: "04e8:6860", // Updated for Samsung Galaxy device
+      manufacturer: "Samsung Electronics Co., Ltd.",
+      model: "Galaxy A05",
       description: "Sample Program",
       version: "1.0",
       url: "https://github.com/gibsson",
       serial: "0000000012345678",
     };
 
-    const AOA_ACCESSORY_VID = 0x18D1;
+    const AOA_ACCESSORY_VID = 0x18D1; // Google
+    const AOA_SAMSUNG_VID = 0x04E8;   // Samsung
     const AOA_ACCESSORY_PID = 0x2D00;
     const AOA_ACCESSORY_ADB_PID = 0x2D01;
     const AOA_AUDIO_PID = 0x2D02;
     const AOA_AUDIO_ADB_PID = 0x2D03;
     const AOA_ACCESSORY_AUDIO_PID = 0x2D04;
     const AOA_ACCESSORY_AUDIO_ADB_PID = 0x2D05;
+    const SAMSUNG_GALAXY_PID = 0x6860; // Common Samsung PID
 
     const AOA_GET_PROTOCOL = 51;
     const AOA_SEND_IDENT = 52;
@@ -76,18 +78,21 @@
 
       const connectDevice = async () => {
         if (!navigator.usb) {
-          addLog("WebUSB is not supported in this browser. Using mock data.");
+          addLog("WebUSB is not supported in this browser (use Chrome). Using mock data.");
           simulateDeviceConnection();
           return;
         }
 
         try {
           const device = await navigator.usb.requestDevice({
-            filters: [{ vendorId: AOA_ACCESSORY_VID }],
+            filters: [
+              { vendorId: AOA_ACCESSORY_VID }, // Google
+              { vendorId: AOA_SAMSUNG_VID },  // Samsung
+            ],
           });
           await device.open();
           setDevice(device);
-          addLog(`Connected to device: ${device.productName} (VID: ${device.vendorId}, PID: ${device.productId})`);
+          addLog(`Connected to device: ${device.productName} (VID: ${device.vendorId.toString(16)}, PID: ${device.productId.toString(16)})`);
           setIsConnected(true);
           await initializeAccessory(device);
         } catch (error) {
@@ -95,10 +100,10 @@
           if (error.message.includes("Access denied")) {
             addLog("Access denied error detected. Troubleshooting steps:");
             addLog("1. Restart your PC to close any interfering programs.");
-            addLog("2. On Linux: Create /etc/udev/rules.d/50-usb.rules with 'SUBSYSTEM==\"usb\", ATTR{idVendor}==\"18d1\", MODE=\"0666\", GROUP=\"plugdev\"', then run 'sudo udevadm control --reload-rules && sudo udevadm trigger'. Add your user to 'plugdev' group: 'sudo usermod -aG plugdev $USER'. Log out/in.");
-            addLog("3. On Windows: Download Zadig (zadig.akeo.ie), select your device, install WinUSB driver.");
-            addLog("4. On macOS: Ensure no other apps are using the device; restart if needed.");
-            addLog("5. Unplug/replug the device and try again. Ensure site is on HTTPS (GitHub Pages is).");
+            addLog("2. On Linux: Create /etc/udev/rules.d/50-usb.rules with 'SUBSYSTEM==\"usb\", ATTR{idVendor}==\"04e8\", MODE=\"0666\", GROUP=\"plugdev\"', then run 'sudo udevadm control --reload-rules && sudo udevadm trigger'. Add user to 'plugdev': 'sudo usermod -aG plugdev $USER'. Log out/in.");
+            addLog("3. On Windows: Download Zadig (zadig.akeo.ie), select your Samsung device, install WinUSB driver.");
+            addLog("4. On macOS: Ensure no other apps (e.g., Samsung Smart Switch) are using the device; restart if needed.");
+            addLog("5. Unplug/replug the device, ensure USB debugging is off, and try again. Site must be on HTTPS.");
             addLog("Falling back to mock mode due to access error.");
             simulateDeviceConnection();
           } else {
@@ -109,7 +114,7 @@
       };
 
       const simulateDeviceConnection = () => {
-        setDevice({ productName: "Mock Accessory", vendorId: AOA_ACCESSORY_VID, productId: AOA_ACCESSORY_PID });
+        setDevice({ productName: "Mock Samsung Galaxy", vendorId: AOA_SAMSUNG_VID, productId: SAMSUNG_GALAXY_PID });
         setIsConnected(true);
         addLog("Simulating device connection with mock data.");
         initializeAccessory({ mock: true });
