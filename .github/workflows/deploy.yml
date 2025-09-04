@@ -1,4 +1,5 @@
 name: Deploy Linux ADK Web to GitHub Pages
+
 on:
   push:
     branches:
