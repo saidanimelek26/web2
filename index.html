@@ -28,23 +28,58 @@
 <body>
   <div id="root"></div>
   <script type="text/babel">
+    // قائمة Vendor IDs الشائعة للهواتف الذكية
+    const COMMON_VENDOR_IDS = {
+      SAMSUNG: 0x04e8,
+      GOOGLE: 0x18d1,
+      HUAWEI: 0x12d1,
+      XIAOMI: 0x2717,
+      OPPO: 0x22d9,
+      VIVO: 0x2d95,
+      ONEPLUS: 0x2a70,
+      LG: 0x1004,
+      SONY: 0x0fce,
+      MOTOROLA: 0x22b8,
+      HTC: 0x0bb4,
+      NOKIA: 0x0421,
+      LENOVO: 0x17ef,
+      ZTE: 0x19d2,
+      MEIZU: 0x2a45,
+      REALME: 0x22d9,
+      TCL: 0x2a94,
+      ALCATEL: 0x1bbb,
+      ASUS: 0x0b05,
+      ACER: 0x0502,
+      TECNO: 0x2340,
+      INFINIX: 0x2340,
+      MICROMAX: 0x1dde,
+      COOLPAD: 0x1ebf,
+      GIONEE: 0x1da8,
+      VODAFONE: 0x1fac,
+      WIKO: 0x1ebf,
+      HONOR: 0x12d1,
+      FAIRPHONE: 0x2c48
+    };
+
     const defaultAccessory = {
-      device: "18d1:4e42",
-      manufacturer: "Google, Inc.",
-      model: "AccessoryChat",
+      device: "04e8:6860", // Updated for Samsung Galaxy device
+      manufacturer: "Samsung Electronics Co., Ltd.",
+      model: "Galaxy A05",
       description: "Sample Program",
       version: "1.0",
       url: "https://github.com/gibsson",
       serial: "0000000012345678",
     };
 
-    const AOA_ACCESSORY_VID = 0x18D1;
+    const AOA_ACCESSORY_VID = 0x18D1; // Google
+    const AOA_SAMSUNG_VID = 0x04E8;   // Samsung
     const AOA_ACCESSORY_PID = 0x2D00;
     const AOA_ACCESSORY_ADB_PID = 0x2D01;
     const AOA_AUDIO_PID = 0x2D02;
     const AOA_AUDIO_ADB_PID = 0x2D03;
     const AOA_ACCESSORY_AUDIO_PID = 0x2D04;
     const AOA_ACCESSORY_AUDIO_ADB_PID = 0x2D05;
+    const SAMSUNG_GALAXY_PID = 0x6860; // Common Samsung PID
 
     const AOA_GET_PROTOCOL = 51;
     const AOA_SEND_IDENT = 52;
@@ -64,9 +99,19 @@
       const [device, setDevice] = React.useState(null);
       const [aoaVersion, setAoaVersion] = React.useState(null);
       const [isConnected, setIsConnected] = React.useState(false);
+      const [detectedVendor, setDetectedVendor] = React.useState(null);
 
       const addLog = (message) => {
         setLogs((prev) => [...prev, message]);
+      };
+
+      const detectVendorName = (vendorId) => {
+        for (const [vendorName, id] of Object.entries(COMMON_VENDOR_IDS)) {
+          if (id === vendorId) {
+            return vendorName;
+          }
+        }
+        return `Unknown (0x${vendorId.toString(16).padStart(4, '0')})`;
       };
 
       const handleInputChange = (e) => {
@@ -76,18 +121,27 @@
 
       const connectDevice = async () => {
         if (!navigator.usb) {
-          addLog("WebUSB is not supported in this browser. Using mock data.");
+          addLog("WebUSB is not supported in this browser (use Chrome). Using mock data.");
           simulateDeviceConnection();
           return;
         }
 
         try {
           const device = await navigator.usb.requestDevice({
-            filters: [{ vendorId: AOA_ACCESSORY_VID }],
+            filters: Object.values(COMMON_VENDOR_IDS).map(vendorId => ({ vendorId }))
           });
+          
           await device.open();
           setDevice(device);
-          addLog(`Connected to device: ${device.productName} (VID: ${device.vendorId}, PID: ${device.productId})`);
+          
+          // اكتشاف Vendor ID وتحديث الواجهة
+          const vendorName = detectVendorName(device.vendorId);
+          setDetectedVendor(vendorName);
+          
+          addLog(`Connected to device: ${device.productName || 'Unknown Device'}`);
+          addLog(`Vendor ID: 0x${device.vendorId.toString(16).padStart(4, '0')} (${vendorName})`);
+          addLog(`Product ID: 0x${device.productId.toString(16).padStart(4, '0')}`);
+          
           setIsConnected(true);
           await initializeAccessory(device);
         } catch (error) {
@@ -95,10 +149,10 @@
           if (error.message.includes("Access denied")) {
             addLog("Access denied error detected. Troubleshooting steps:");
             addLog("1. Restart your PC to close any interfering programs.");
-            addLog("2. On Linux: Create /etc/udev/rules.d/50-usb.rules with 'SUBSYSTEM==\"usb\", ATTR{idVendor}==\"18d1\", MODE=\"0666\", GROUP=\"plugdev\"', then run 'sudo udevadm control --reload-rules && sudo udevadm trigger'. Add your user to 'plugdev' group: 'sudo usermod -aG plugdev $USER'. Log out/in.");
-            addLog("3. On Windows: Download Zadig (zadig.akeo.ie), select your device, install WinUSB driver.");
-            addLog("4. On macOS: Ensure no other apps are using the device; restart if needed.");
-            addLog("5. Unplug/replug the device and try again. Ensure site is on HTTPS (GitHub Pages is).");
+            addLog("2. On Linux: Create /etc/udev/rules.d/50-usb.rules with 'SUBSYSTEM==\"usb\", ATTR{idVendor}==\"04e8\", MODE=\"0666\", GROUP=\"plugdev\"', then run 'sudo udevadm control --reload-rules && sudo udevadm trigger'. Add user to 'plugdev': 'sudo usermod -aG plugdev $USER'. Log out/in.");
+            addLog("3. On Windows: Download Zadig (zadig.akeo.ie), select your Samsung device, install WinUSB driver.");
+            addLog("4. On macOS: Ensure no other apps (e.g., Samsung Smart Switch) are using the device; restart if needed.");
+            addLog("5. Unplug/replug the device, ensure USB debugging is off, and try again. Site must be on HTTPS.");
             addLog("Falling back to mock mode due to access error.");
             simulateDeviceConnection();
           } else {
@@ -109,8 +163,9 @@
       };
 
       const simulateDeviceConnection = () => {
-        setDevice({ productName: "Mock Accessory", vendorId: AOA_ACCESSORY_VID, productId: AOA_ACCESSORY_PID });
+        setDevice({ productName: "Mock Samsung Galaxy", vendorId: AOA_SAMSUNG_VID, productId: SAMSUNG_GALAXY_PID });
         setIsConnected(true);
+        setDetectedVendor("SAMSUNG");
         addLog("Simulating device connection with mock data.");
         initializeAccessory({ mock: true });
       };
@@ -248,11 +303,26 @@
         setDevice(null);
         setIsConnected(false);
         setAoaVersion(null);
+        setDetectedVendor(null);
       };
 
       return (
         <div className="bg-white p-6 rounded-lg shadow-lg">
           <h1 className="text-2xl font-bold mb-4">Linux ADK Web</h1>
+          
+          {detectedVendor && (
+            <div className="mb-4 p-3 bg-blue-100 rounded-lg">
+              <h2 className="font-semibold">Detected Device:</h2>
+              <p className="font-mono">{detectedVendor}</p>
+              {device && (
+                <p className="text-sm">
+                  Vendor ID: 0x{device.vendorId.toString(16).padStart(4, '0')}, 
+                  Product ID: 0x{device.productId.toString(16).padStart(4, '0')}
+                </p>
+              )}
+            </div>
+          )}
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             {Object.keys(defaultAccessory).map((key) => (
               <div key={key} className="flex flex-col">
