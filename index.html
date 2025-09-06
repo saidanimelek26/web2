@@ -33,7 +33,7 @@
       model: "Galaxy A05",
       description: "Sample Program",
       version: "1.0",
-      url: "https://github.com/gibsson",
+      url: window.location.href, // Use current page URL
       serial: "0000000012345678",
     };
 
@@ -55,7 +55,6 @@
       { vendorId: 0x0B05 }, // Asus
       { vendorId: 0x19D2 }, // ZTE
       { vendorId: 0x2E04 }, // Nokia (HMD Global)
-      // AOA-specific PIDs
       { vendorId: 0x18D1, productId: 0x2D00 }, // AOA Accessory
       { vendorId: 0x18D1, productId: 0x2D01 }, // AOA Accessory + ADB
       { vendorId: 0x18D1, productId: 0x2D02 }, // AOA Audio
@@ -123,6 +122,13 @@
         }
 
         try {
+          // Log available devices for debugging
+          const devices = await navigator.usb.getDevices();
+          addLog(`Found ${devices.length} USB devices:`);
+          devices.forEach((d) =>
+            addLog(`- ${d.productName || "Unknown"} (VID: 0x${d.vendorId.toString(16).padStart(4, "0")}, PID: 0x${d.productId.toString(16).padStart(4, "0")})`)
+          );
+
           const device = await navigator.usb.requestDevice({
             filters: DEVICE_FILTERS,
           });
@@ -141,10 +147,14 @@
           await initializeAccessory(device);
         } catch (error) {
           addLog(`Error connecting to device: ${error.message}`);
-          if (error.message.includes("Access denied")) {
+          if (error.message.includes("No device selected")) {
+            addLog("No device was selected. Ensure the device is connected, USB debugging is off, and matches the VID/PID filters.");
+            addLog("Falling back to mock mode.");
+            simulateDeviceConnection();
+          } else if (error.message.includes("Access denied")) {
             addLog("Access denied error detected. Troubleshooting steps:");
             addLog("1. Restart your PC to close any interfering programs.");
-            addLog("2. On Linux: Create /etc/udev/rules.d/50-usb.rules with 'SUBSYSTEM==\"usb\", ATTR{idVendor}==\"*\", MODE=\"0666\", GROUP=\"plugdev\"', then run 'sudo udevadm control --reload-rules && sudo udevadm trigger'. Add user to 'plugdev': 'sudo usermod -aG plugdev $USER'. Log out/in.");
+            addLog("2. On Linux: Create /etc/udev/rules.d/50-usb.rules with specific vendor rules, e.g., 'SUBSYSTEM==\"usb\", ATTR{idVendor}==\"04e8\", MODE=\"0666\", GROUP=\"plugdev\"', then run 'sudo udevadm control --reload-rules && sudo udevadm trigger'. Add user to 'plugdev': 'sudo usermod -aG plugdev $USER'. Log out/in.");
             addLog("3. On Windows: Download Zadig (zadig.akeo.ie), select your device, install WinUSB driver.");
             addLog("4. On macOS: Ensure no other apps (e.g., Samsung Smart Switch) are using the device; restart if needed.");
             addLog("5. Unplug/replug the device, ensure USB debugging is off, and try again. Site must be on HTTPS.");
@@ -186,7 +196,7 @@
           }
 
           addLog("Sending identification to the device...");
-          await sendIdentification(device, accessory);
+          await sendIdentification(device, { ...accessory, url: window.location.href }); // Use current page URL
 
           addLog("Turning device into Accessory mode...");
           await startAccessoryMode(device);
