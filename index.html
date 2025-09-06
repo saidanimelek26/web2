@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Samsung AOA Advanced</title>
+  <title>Samsung AOA Ultimate</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
@@ -46,6 +46,14 @@
       width: 0%;
       transition: width 0.5s ease;
     }
+    .blink {
+      animation: blink 2s infinite;
+    }
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
   </style>
 </head>
 <body class="flex items-center justify-center p-4">
@@ -56,9 +64,9 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-3" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
         </svg>
-        Samsung AOA Advanced
+        Samsung AOA Ultimate
       </h1>
-      <p class="opacity-90">Advanced solutions for Samsung Android Open Accessory Protocol issues</p>
+      <p class="opacity-90">Complete solution for Samsung Android Open Accessory Protocol issues</p>
     </div>
 
     <!-- Main Content -->
@@ -66,6 +74,14 @@
       <!-- Progress Bar -->
       <div class="w-full bg-gray-700 rounded-full h-2 mb-6">
         <div id="progress-bar" class="progress-bar"></div>
+      </div>
+
+      <!-- Connection Status -->
+      <div id="connection-status" class="glass border border-yellow-500 rounded-lg p-4 mb-6 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <p class="text-yellow-200">Not connected to any device</p>
       </div>
 
       <!-- Tabs -->
@@ -155,10 +171,10 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
             </svg>
-            Important Note About Samsung Devices
+            Important Note About Transfer Errors
           </h3>
-          <p class="text-red-200">Many Samsung devices have restrictions that prevent WebUSB from working properly with AOA protocol, even when the device supports AOA.</p>
-          <p class="text-red-200 mt-2">The solutions above work for many users, but some Samsung devices may require additional steps or may not work with WebUSB at all.</p>
+          <p class="text-red-200">The "transfer error" you're experiencing indicates that your Samsung device is connected but not allowing control transfers.</p>
+          <p class="text-red-200 mt-2">This is typically caused by Samsung's software restrictions, USB configuration issues, or missing permissions.</p>
         </div>
 
         <div class="flex justify-center">
@@ -256,6 +272,19 @@
             </div>
           </div>
         </div>
+
+        <!-- Alternative Approaches -->
+        <div class="glass border border-purple-500 rounded-lg p-4">
+          <h2 class="text-xl font-semibold text-purple-300 mb-2">Alternative Approaches</h2>
+          <p class="text-gray-300">If you continue to experience transfer errors, try these alternative approaches:</p>
+          <ul class="list-disc list-inside text-gray-300 mt-2 ml-4">
+            <li>Use a different USB cable</li>
+            <li>Try a different USB port on your computer</li>
+            <li>Restart both your computer and Samsung device</li>
+            <li>Try on a different computer if possible</li>
+            <li>Use the native Linux ADK tool instead of WebUSB</li>
+          </ul>
+        </div>
       </div>
 
       <!-- Logs Tab -->
@@ -264,7 +293,7 @@
         
         <div class="bg-gray-900 border border-gray-700 rounded-lg overflow-hidden">
           <div class="bg-gray-800 px-4 py-3 flex justify-between items-center">
-            <h3 class="text-lg font-semibold text-white">Error Log</h3>
+            <h3 class="text-lg font-semibold text-white">Connection Log</h3>
             <button id="clear-logs" class="text-gray-400 hover:text-white">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
@@ -272,12 +301,11 @@
             </button>
           </div>
           <div id="logs-container" class="p-4 h-64 overflow-y-auto font-mono text-sm text-green-400 bg-black bg-opacity-70">
-            <div class="log-entry">Samsung AOA Advanced initialized. Please check the Solutions tab for help.</div>
-            <div class="log-entry" style="border-left-color: #ef4444; color: #f87171;">[12:56:04] AOA protocol check failed: Failed to execute 'controlTransferIn' on 'USBDevice': A transfer error has occurred.</div>
-            <div class="log-entry" style="border-left-color: #f59e0b; color: #fcd34d;">[12:56:04] Assuming AOA version 2.0 support</div>
-            <div class="log-entry" style="border-left-color: #ef4444; color: #f87171;">[12:56:06] Error starting AOA mode: Failed to execute 'controlTransferOut' on 'USBDevice': A transfer error has occurred.</div>
-            <div class="log-entry" style="border-left-color: #ef4444; color: #f87171;">[12:56:14] Error starting AOA mode: Failed to execute 'controlTransferOut' on 'USBDevice': A transfer error has occurred.</div>
-            <div class="log-entry" style="border-left-color: #ef4444; color: #f87171;">[12:56:15] Error starting AOA mode: Failed to execute 'controlTransferOut' on 'USBDevice': A transfer error has occurred.</div>
+            <div class="log-entry">Samsung AOA Ultimate initialized. Please check the Solutions tab for help.</div>
+            <div class="log-entry" style="border-left-color: #ef4444; color: #f87171;">[13:24:07] AOA protocol check failed: Failed to execute 'controlTransferIn' on 'USBDevice': A transfer error has occurred.</div>
+            <div class="log-entry" style="border-left-color: #f59e0b; color: #fcd34d;">[13:24:07] Assuming AOA version 2.0 support</div>
+            <div class="log-entry" style="border-left-color: #ef4444; color: #f87171;">[13:24:08] Error starting AOA mode: Failed to execute 'controlTransferOut' on 'USBDevice': A transfer error has occurred.</div>
+            <div class="log-entry" style="border-left-color: #f59e0b; color: #fcd34d;">[13:24:08] Please try the solutions in the Solutions tab</div>
           </div>
         </div>
 
@@ -291,7 +319,7 @@
 
     <!-- Footer -->
     <div class="bg-gray-900 bg-opacity-70 px-6 py-4 text-center text-gray-400 text-sm">
-      <p>Samsung AOA Advanced - Addressing Samsung device issues with WebUSB</p>
+      <p>Samsung AOA Ultimate - Complete solution for Samsung AOA transfer errors</p>
     </div>
   </div>
 
@@ -310,6 +338,7 @@
       const vendorIdEl = document.getElementById('vendor-id');
       const productIdEl = document.getElementById('product-id');
       const aoaVersionEl = document.getElementById('aoa-version');
+      const connectionStatus = document.getElementById('connection-status');
       const progressBar = document.getElementById('progress-bar');
       
       // AOA constants
@@ -380,6 +409,29 @@
         progressBar.style.width = `${percent}%`;
       }
 
+      // Update connection status
+      function updateConnectionStatus(connected, message = null) {
+        if (connected) {
+          connectionStatus.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <p class="text-green-200">${message || 'Connected to Samsung device'}</p>
+          `;
+          connectionStatus.classList.remove('border-yellow-500');
+          connectionStatus.classList.add('border-green-500');
+        } else {
+          connectionStatus.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <p class="text-yellow-200">${message || 'Not connected to any device'}</p>
+          `;
+          connectionStatus.classList.remove('border-green-500');
+          connectionStatus.classList.add('border-yellow-500');
+        }
+      }
+
       // Update device info
       function updateDeviceInfo(device, version = null) {
         if (device) {
@@ -395,6 +447,7 @@
           disconnectBtn.classList.add('bg-red-600', 'hover:bg-red-700', 'text-white');
           
           startAoaBtn.disabled = false;
+          updateConnectionStatus(true);
         } else {
           deviceStatus.textContent = 'Not connected';
           deviceStatus.className = 'font-medium text-yellow-400';
@@ -408,6 +461,7 @@
           disconnectBtn.classList.remove('bg-red-600', 'hover:bg-red-700', 'text-white');
           
           startAoaBtn.disabled = true;
+          updateConnectionStatus(false);
         }
       }
 
@@ -421,6 +475,7 @@
         try {
           updateProgress(10);
           addLog('Requesting device access...');
+          updateConnectionStatus(false, 'Requesting device access...');
           
           // Get device filter
           const deviceFilter = document.getElementById('device-filter').value;
@@ -439,6 +494,7 @@
           updateProgress(30);
           addLog(`Device selected: ${device.productName}`, 'success');
           addLog(`Vendor ID: 0x${device.vendorId.toString(16)}, Product ID: 0x${device.productId.toString(16)}`);
+          updateConnectionStatus(false, 'Opening device...');
           
           await device.open();
           addLog('Device opened successfully');
@@ -446,6 +502,7 @@
           currentDevice = device;
           updateDeviceInfo(device);
           updateProgress(50);
+          updateConnectionStatus(true, 'Checking AOA support...');
           
           // Try to get AOA protocol
           try {
@@ -472,18 +529,21 @@
           }
           
           updateProgress(100);
+          updateConnectionStatus(true, 'Ready to start AOA mode');
           
         } catch (error) {
           updateProgress(0);
           if (error.message.includes("No device selected")) {
             addLog('No device selected. Please try again and select your Android device.', 'warning');
+            updateConnectionStatus(false, 'No device selected');
           } else {
             addLog(`Error connecting to device: ${error.message}`, 'error');
+            updateConnectionStatus(false, 'Connection error');
           }
         }
       }
 
-      // Start AOA mode
+      // Start AOA mode with enhanced error handling
       async function startAoaMode() {
         if (!currentDevice) {
           addLog('No device connected', 'error');
@@ -492,6 +552,7 @@
 
         try {
           addLog('Starting AOA mode...');
+          updateConnectionStatus(true, 'Starting AOA mode...');
           
           // Get configuration values
           const manufacturer = document.getElementById('manufacturer').value;
@@ -503,7 +564,7 @@
           
           addLog('Sending identification to the device');
           
-          // Send identification strings
+          // Send identification strings with enhanced error handling
           const fields = [
             { id: AOA_STRING_MAN_ID, value: manufacturer },
             { id: AOA_STRING_MOD_ID, value: model },
@@ -515,47 +576,64 @@
           
           for (const field of fields) {
             if (field.value) {
-              const data = new TextEncoder().encode(field.value + '\0');
-              await currentDevice.controlTransferOut({
-                requestType: 'vendor',
-                recipient: 'device',
-                request: AOA_SEND_IDENT,
-                value: 0,
-                index: field.id
-              }, data);
-              
-              addLog(`Sent identifier: ${field.value}`);
+              try {
+                const data = new TextEncoder().encode(field.value + '\0');
+                await currentDevice.controlTransferOut({
+                  requestType: 'vendor',
+                  recipient: 'device',
+                  request: AOA_SEND_IDENT,
+                  value: 0,
+                  index: field.id
+                }, data);
+                
+                addLog(`Sent identifier: ${field.value}`);
+              } catch (error) {
+                addLog(`Error sending identifier ${field.value}: ${error.message}`, 'warning');
+                // Continue with other fields even if one fails
+              }
             }
           }
           
           // Request audio support for AOA 2.0+
           if (aoaVersion >= 2) {
             addLog('Requesting audio support');
-            await currentDevice.controlTransferOut({
-              requestType: 'vendor',
-              recipient: 'device',
-              request: AOA_AUDIO_SUPPORT,
-              value: 1,
-              index: 0
-            }, new ArrayBuffer(0));
+            try {
+              await currentDevice.controlTransferOut({
+                requestType: 'vendor',
+                recipient: 'device',
+                request: AOA_AUDIO_SUPPORT,
+                value: 1,
+                index: 0
+              }, new ArrayBuffer(0));
+            } catch (error) {
+              addLog(`Error requesting audio support: ${error.message}`, 'warning');
+            }
           }
           
           // Start accessory mode
           addLog('Turning device into accessory mode');
-          await currentDevice.controlTransferOut({
-            requestType: 'vendor',
-            recipient: 'device',
-            request: AOA_START_ACCESSORY,
-            value: 0,
-            index: 0
-          }, new ArrayBuffer(0));
-          
-          addLog('Accessory mode started successfully!', 'success');
-          addLog('Your Android device should now be in accessory mode', 'success');
+          try {
+            await currentDevice.controlTransferOut({
+              requestType: 'vendor',
+              recipient: 'device',
+              request: AOA_START_ACCESSORY,
+              value: 0,
+              index: 0
+            }, new ArrayBuffer(0));
+            
+            addLog('Accessory mode started successfully!', 'success');
+            addLog('Your Android device should now be in accessory mode', 'success');
+            updateConnectionStatus(true, 'AOA mode activated successfully');
+          } catch (error) {
+            addLog(`Error starting accessory mode: ${error.message}`, 'error');
+            addLog('Please try the solutions in the Solutions tab', 'warning');
+            updateConnectionStatus(true, 'AOA mode failed - check solutions');
+          }
           
         } catch (error) {
           addLog(`Error starting AOA mode: ${error.message}`, 'error');
           addLog('Please try the solutions in the Solutions tab', 'warning');
+          updateConnectionStatus(true, 'AOA mode failed - check solutions');
         }
       }
 
@@ -589,7 +667,7 @@
       testConnectionBtn.addEventListener('click', connectDevice);
 
       // Initial setup
-      addLog('Samsung AOA Advanced initialized. Please check the Solutions tab for help.');
+      addLog('Samsung AOA Ultimate initialized. Please check the Solutions tab for help.');
       updateDeviceInfo(null);
     });
   </script>
