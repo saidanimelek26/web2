@@ -24,59 +24,29 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.18.9/babel.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode.react/3.1.0/qrcode.min.js"></script>
 </head>
 <body>
   <div id="root"></div>
   <script type="text/babel">
     const defaultAccessory = {
+      device: "04e8:6860", // Updated for Samsung Galaxy device
       manufacturer: "Samsung Electronics Co., Ltd.",
       model: "Galaxy A05",
       description: "Sample Program",
       version: "1.0",
-      url: window.location.href, // Use current page URL
+      url: "https://github.com/gibsson",
       serial: "0000000012345678",
     };
 
-    const DEVICE_FILTERS = [
-      { vendorId: 0x18D1 }, // Google
-      { vendorId: 0x04E8, productId: 0x6860 }, // Samsung Galaxy
-      { vendorId: 0x04E8 }, // Samsung (general)
-      { vendorId: 0x12D1 }, // Huawei
-      { vendorId: 0x2717 }, // Xiaomi
-      { vendorId: 0x22D9 }, // Oppo
-      { vendorId: 0x2D95 }, // Vivo
-      { vendorId: 0x054C }, // Sony
-      { vendorId: 0x1004 }, // LG
-      { vendorId: 0x22B8 }, // Motorola
-      { vendorId: 0x0BB4 }, // HTC
-      { vendorId: 0x2A70 }, // OnePlus
-      { vendorId: 0x17EF }, // Lenovo
-      { vendorId: 0x0B05 }, // Asus
-      { vendorId: 0x19D2 }, // ZTE
-      { vendorId: 0x2E04 }, // Nokia (HMD Global)
-      { vendorId: 0x18D1, productId: 0x2D00 }, // AOA Accessory
-      { vendorId: 0x18D1, productId: 0x2D02 }, // AOA Audio
-      { vendorId: 0x18D1, productId: 0x2D04 }, // AOA Accessory + Audio
-    ];
-
-    const VENDOR_NAMES = {
-      0x18D1: "Google",
-      0x04E8: "Samsung",
-      0x12D1: "Huawei",
-      0x2717: "Xiaomi",
-      0x22D9: "Oppo",
-      0x2D95: "Vivo",
-      0x054C: "Sony",
-      0x1004: "LG",
-      0x22B8: "Motorola",
-      0x0BB4: "HTC",
-      0x2A70: "OnePlus",
-      0x17EF: "Lenovo",
-      0x0B05: "Asus",
-      0x19D2: "ZTE",
-      0x2E04: "Nokia",
-    };
+    const AOA_ACCESSORY_VID = 0x18D1; // Google
+    const AOA_SAMSUNG_VID = 0x04E8;   // Samsung
+    const AOA_ACCESSORY_PID = 0x2D00;
+    const AOA_ACCESSORY_ADB_PID = 0x2D01;
+    const AOA_AUDIO_PID = 0x2D02;
+    const AOA_AUDIO_ADB_PID = 0x2D03;
+    const AOA_ACCESSORY_AUDIO_PID = 0x2D04;
+    const AOA_ACCESSORY_AUDIO_ADB_PID = 0x2D05;
+    const SAMSUNG_GALAXY_PID = 0x6860; // Common Samsung PID
 
     const AOA_GET_PROTOCOL = 51;
     const AOA_SEND_IDENT = 52;
@@ -96,7 +66,6 @@
       const [device, setDevice] = React.useState(null);
       const [aoaVersion, setAoaVersion] = React.useState(null);
       const [isConnected, setIsConnected] = React.useState(false);
-      const [deviceId, setDeviceId] = React.useState(null);
 
       const addLog = (message) => {
         setLogs((prev) => [...prev, message]);
@@ -107,10 +76,6 @@
         setAccessory((prev) => ({ ...prev, [name]: value }));
       };
 
-      const getVendorName = (vendorId) => {
-        return VENDOR_NAMES[vendorId] || "Unknown Vendor";
-      };
-
       const connectDevice = async () => {
         if (!navigator.usb) {
           addLog("WebUSB is not supported in this browser (use Chrome). Using mock data.");
@@ -119,43 +84,27 @@
         }
 
         try {
-          const devices = await navigator.usb.getDevices();
-          addLog(`Found ${devices.length} USB devices:`);
-          devices.forEach((d) =>
-            addLog(`- ${d.productName || "Unknown"} (VID: 0x${d.vendorId.toString(16).padStart(4, "0")}, PID: 0x${d.productId.toString(16).padStart(4, "0")})`)
-          );
-
           const device = await navigator.usb.requestDevice({
-            filters: DEVICE_FILTERS,
+            filters: [
+              { vendorId: AOA_ACCESSORY_VID }, // Google
+              { vendorId: AOA_SAMSUNG_VID },  // Samsung
+            ],
           });
-          addLog("Attempting to open device...");
           await device.open();
-          addLog(`Device configuration: ${device.configuration ? device.configuration.configurationValue : "Not set"}`);
           setDevice(device);
-
-          const uniqueId = device.serialNumber || `${device.vendorId.toString(16).padStart(4, "0")}:${device.productId.toString(16).padStart(4, "0")}:${Date.now()}`;
-          setDeviceId(uniqueId);
-
-          addLog(`Connected to device: ${device.productName || "Unknown Device"}`);
-          addLog(`Vendor: ${getVendorName(device.vendorId)} (VID: 0x${device.vendorId.toString(16).padStart(4, "0")})`);
-          addLog(`Product ID: 0x${device.productId.toString(16).padStart(4, "0")}`);
-          addLog(`Device ID: ${uniqueId}`);
+          addLog(`Connected to device: ${device.productName} (VID: ${device.vendorId.toString(16)}, PID: ${device.productId.toString(16)})`);
           setIsConnected(true);
           await initializeAccessory(device);
         } catch (error) {
           addLog(`Error connecting to device: ${error.message}`);
-          if (error.message.includes("No device selected")) {
-            addLog("No device was selected. Ensure the device is connected, in MTP/PTP mode, and matches the VID/PID filters.");
-            addLog("Falling back to mock mode.");
-            simulateDeviceConnection();
-          } else if (error.message.includes("Access denied")) {
+          if (error.message.includes("Access denied")) {
             addLog("Access denied error detected. Troubleshooting steps:");
             addLog("1. Restart your PC to close any interfering programs.");
             addLog("2. On Linux: Create /etc/udev/rules.d/50-usb.rules with 'SUBSYSTEM==\"usb\", ATTR{idVendor}==\"04e8\", MODE=\"0666\", GROUP=\"plugdev\"', then run 'sudo udevadm control --reload-rules && sudo udevadm trigger'. Add user to 'plugdev': 'sudo usermod -aG plugdev $USER'. Log out/in.");
-            addLog("3. On Windows: Download Zadig (zadig.akeo.ie), select your device, install WinUSB driver.");
+            addLog("3. On Windows: Download Zadig (zadig.akeo.ie), select your Samsung device, install WinUSB driver.");
             addLog("4. On macOS: Ensure no other apps (e.g., Samsung Smart Switch) are using the device; restart if needed.");
-            addLog("5. Unplug/replug the device and try again. Site must be on HTTPS.");
-            addLog("Falling back to mock mode.");
+            addLog("5. Unplug/replug the device, ensure USB debugging is off, and try again. Site must be on HTTPS.");
+            addLog("Falling back to mock mode due to access error.");
             simulateDeviceConnection();
           } else {
             addLog("Unexpected error. Falling back to mock mode.");
@@ -165,20 +114,10 @@
       };
 
       const simulateDeviceConnection = () => {
-        const mockDevice = {
-          productName: "Mock Samsung Galaxy",
-          vendorId: 0x04E8,
-          productId: 0x6860,
-          serialNumber: "MOCK123456789",
-          mock: true,
-        };
-        setDevice(mockDevice);
-        setDeviceId(mockDevice.serialNumber);
+        setDevice({ productName: "Mock Samsung Galaxy", vendorId: AOA_SAMSUNG_VID, productId: SAMSUNG_GALAXY_PID });
         setIsConnected(true);
         addLog("Simulating device connection with mock data.");
-        addLog(`Mock Device ID: ${mockDevice.serialNumber}`);
-        addLog(`Simulating URL sent to device: ${window.location.href}`);
-        initializeAccessory(mockDevice);
+        initializeAccessory({ mock: true });
       };
 
       const initializeAccessory = async (device) => {
@@ -194,55 +133,36 @@
           }
 
           addLog("Sending identification to the device...");
-          await sendIdentification(device, { ...accessory, url: window.location.href });
+          await sendIdentification(device, accessory);
 
           addLog("Turning device into Accessory mode...");
           await startAccessoryMode(device);
 
-          addLog("Device initialized successfully! URL should open in browser if an AOA-compatible app is installed.");
+          addLog("Device initialized successfully!");
           startDataSnooping(device);
         } catch (error) {
           addLog(`Initialization failed: ${error.message}`);
-          addLog("Troubleshooting AOA failure:");
-          addLog("1. Verify device supports AOA (e.g., Galaxy S5/S6, not all devices like Galaxy A05 support it).");
-          addLog("2. Ensure USB cable supports data transfer (not charge-only).");
-          addLog("3. Set device to MTP or PTP mode in USB settings.");
-          addLog("4. Install an AOA-compatible app on the device to open the URL in the browser.");
-          addLog("5. Test with another AOA-compatible device.");
-          addLog(`URL intended to send: ${window.location.href}`);
-          addLog("Falling back to mock mode.");
-          simulateDeviceConnection();
+          if (error.message.includes("Access denied")) {
+            addLog("Access denied during init. See connection logs for troubleshooting. Falling back to mock.");
+            simulateDeviceConnection();
+          }
         }
       };
 
       const getAoaProtocol = async (device) => {
         if (device.mock) return 2;
-        const maxRetries = 3;
-        let attempt = 0;
-        while (attempt < maxRetries) {
-          try {
-            addLog(`Attempting AOA protocol check (attempt ${attempt + 1}/${maxRetries})...`);
-            const result = await device.controlTransferIn({
-              requestType: "vendor",
-              recipient: "device",
-              request: AOA_GET_PROTOCOL,
-              value: 0,
-              index: 0,
-            }, 2);
-            if (result.status === "ok") {
-              const buffer = new Uint8Array(result.data.buffer);
-              return (buffer[1] << 8) | buffer[0];
-            }
-            throw new Error("Failed to get AOA protocol response");
-          } catch (error) {
-            attempt++;
-            if (attempt === maxRetries) {
-              throw new Error(`AOA check failed after ${maxRetries} attempts: ${error.message}`);
-            }
-            addLog(`AOA check attempt ${attempt} failed: ${error.message}. Retrying...`);
-            await new Promise(resolve => setTimeout(resolve, 500));
-          }
+        const result = await device.controlTransferIn({
+          requestType: "vendor",
+          recipient: "device",
+          request: AOA_GET_PROTOCOL,
+          value: 0,
+          index: 0,
+        }, 2);
+        if (result.status === "ok") {
+          const buffer = new Uint8Array(result.data.buffer);
+          return (buffer[1] << 8) | buffer[0];
         }
+        throw new Error("Failed to get AOA protocol");
       };
 
       const sendIdentification = async (device, acc) => {
@@ -259,18 +179,14 @@
           if (field.value) {
             addLog(`Sending ${field.id === AOA_STRING_MAN_ID ? "manufacturer" : field.id === AOA_STRING_MOD_ID ? "model" : field.id === AOA_STRING_DSC_ID ? "description" : field.id === AOA_STRING_VER_ID ? "version" : field.id === AOA_STRING_URL_ID ? "url" : "serial"}: ${field.value}`);
             if (!device.mock) {
-              try {
-                const data = new TextEncoder().encode(field.value + "\0");
-                await device.controlTransferOut({
-                  requestType: "vendor",
-                  recipient: "device",
-                  request: AOA_SEND_IDENT,
-                  value: 0,
-                  index: field.id,
-                }, data);
-              } catch (error) {
-                addLog(`Failed to send ${field.id === AOA_STRING_URL_ID ? "url" : "data"}: ${error.message}`);
-              }
+              const data = new TextEncoder().encode(field.value + "\0");
+              await device.controlTransferOut({
+                requestType: "vendor",
+                recipient: "device",
+                request: AOA_SEND_IDENT,
+                value: 0,
+                index: field.id,
+              }, data);
             }
           }
         }
@@ -278,32 +194,24 @@
 
       const requestAudioSupport = async (device) => {
         if (device.mock) return;
-        try {
-          await device.controlTransferOut({
-            requestType: "vendor",
-            recipient: "device",
-            request: AOA_AUDIO_SUPPORT,
-            value: 1,
-            index: 0,
-          });
-        } catch (error) {
-          addLog(`Failed to request audio support: ${error.message}`);
-        }
+        await device.controlTransferOut({
+          requestType: "vendor",
+          recipient: "device",
+          request: AOA_AUDIO_SUPPORT,
+          value: 1,
+          index: 0,
+        });
       };
 
       const startAccessoryMode = async (device) => {
         if (device.mock) return;
-        try {
-          await device.controlTransferOut({
-            requestType: "vendor",
-            recipient: "device",
-            request: AOA_START_ACCESSORY,
-            value: 0,
-            index: 0,
-          });
-        } catch (error) {
-          addLog(`Failed to start accessory mode: ${error.message}`);
-        }
+        await device.controlTransferOut({
+          requestType: "vendor",
+          recipient: "device",
+          request: AOA_START_ACCESSORY,
+          value: 0,
+          index: 0,
+        });
       };
 
       const startDataSnooping = async (device) => {
@@ -343,7 +251,6 @@
           }
         }
         setDevice(null);
-        setDeviceId(null);
         setIsConnected(false);
         setAoaVersion(null);
       };
@@ -382,19 +289,6 @@
               Disconnect
             </button>
           </div>
-          {deviceId && (
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold">Device ID</h2>
-              <p className="font-mono text-sm">{deviceId}</p>
-            </div>
-          )}
-          {!isConnected && (
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold">Scan to Open URL</h2>
-              <QRCode value={window.location.href} size={128} />
-              <p className="text-sm mt-2">If the browser doesn't open, scan this QR code on your device.</p>
-            </div>
-          )}
           <div className="bg-gray-800 text-white p-4 rounded h-64 overflow-y-auto">
             <h2 className="text-lg font-semibold mb-2">Logs</h2>
             {logs.map((log, index) => (
