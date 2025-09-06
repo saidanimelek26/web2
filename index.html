@@ -3,369 +3,489 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Linux ADK Web</title>
+  <title>Linux ADK Web - Enhanced</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      content: [],
-      theme: { extend: {} },
-      plugins: [],
-    };
-  </script>
   <style>
     body {
-      background-color: #f3f4f6;
+      background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .log-entry {
+      border-left: 4px solid #3b82f6;
+      padding-left: 0.5rem;
+      margin-bottom: 0.5rem;
+      animation: fadeIn 0.5s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .device-card {
+      transition: all 0.3s ease;
+    }
+    .device-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
     }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.18.9/babel.min.js"></script>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="text/babel">
-    // قائمة Vendor IDs الشائعة للهواتف الذكية
-    const COMMON_VENDOR_IDS = {
-      SAMSUNG: 0x04e8,
-      GOOGLE: 0x18d1,
-      HUAWEI: 0x12d1,
-      XIAOMI: 0x2717,
-      OPPO: 0x22d9,
-      VIVO: 0x2d95,
-      ONEPLUS: 0x2a70,
-      LG: 0x1004,
-      SONY: 0x0fce,
-      MOTOROLA: 0x22b8,
-      HTC: 0x0bb4,
-      NOKIA: 0x0421,
-      LENOVO: 0x17ef,
-      ZTE: 0x19d2,
-      MEIZU: 0x2a45,
-      REALME: 0x22d9,
-      TCL: 0x2a94,
-      ALCATEL: 0x1bbb,
-      ASUS: 0x0b05,
-      ACER: 0x0502,
-      TECNO: 0x2340,
-      INFINIX: 0x2340,
-      MICROMAX: 0x1dde,
-      COOLPAD: 0x1ebf,
-      GIONEE: 0x1da8,
-      VODAFONE: 0x1fac,
-      WIKO: 0x1ebf,
-      HONOR: 0x12d1,
-      FAIRPHONE: 0x2c48
-    };
+  <div id="app" class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-xl shadow-2xl overflow-hidden max-w-4xl">
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6">
+        <h1 class="text-3xl font-bold mb-2">Linux ADK Web</h1>
+        <p class="opacity-90">Android Open Accessory Protocol Web Implementation</p>
+      </div>
 
-    const defaultAccessory = {
-      device: "04e8:6860", // Updated for Samsung Galaxy device
-      manufacturer: "Samsung Electronics Co., Ltd.",
-      model: "Galaxy A05",
-      description: "Sample Program",
-      version: "1.0",
-      url: "https://github.com/gibsson",
-      serial: "0000000012345678",
-    };
+      <!-- Main Content -->
+      <div class="p-6">
+        <!-- Device Info -->
+        <div id="device-info" class="device-card bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <h2 class="text-xl font-semibold text-blue-800 mb-3">Device Information</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p class="text-sm text-blue-600">Device Name</p>
+              <p id="device-name" class="font-medium">Not connected</p>
+            </div>
+            <div>
+              <p class="text-sm text-blue-600">Vendor ID</p>
+              <p id="vendor-id" class="font-medium">-</p>
+            </div>
+            <div>
+              <p class="text-sm text-blue-600">Product ID</p>
+              <p id="product-id" class="font-medium">-</p>
+            </div>
+            <div>
+              <p class="text-sm text-blue-600">Manufacturer</p>
+              <p id="manufacturer" class="font-medium">-</p>
+            </div>
+          </div>
+        </div>
 
-    const AOA_ACCESSORY_VID = 0x18D1; // Google
-    const AOA_SAMSUNG_VID = 0x04E8;   // Samsung
-    const AOA_ACCESSORY_PID = 0x2D00;
-    const AOA_ACCESSORY_ADB_PID = 0x2D01;
-    const AOA_AUDIO_PID = 0x2D02;
-    const AOA_AUDIO_ADB_PID = 0x2D03;
-    const AOA_ACCESSORY_AUDIO_PID = 0x2D04;
-    const AOA_ACCESSORY_AUDIO_ADB_PID = 0x2D05;
-    const SAMSUNG_GALAXY_PID = 0x6860; // Common Samsung PID
+        <!-- Connection Buttons -->
+        <div class="flex flex-wrap gap-4 mb-6">
+          <button id="connect-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd" />
+            </svg>
+            Connect Device
+          </button>
+          <button id="disconnect-btn" disabled class="bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+            Disconnect
+          </button>
+          <button id="troubleshoot-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+            Troubleshoot
+          </button>
+        </div>
 
-    const AOA_GET_PROTOCOL = 51;
-    const AOA_SEND_IDENT = 52;
-    const AOA_START_ACCESSORY = 53;
-    const AOA_AUDIO_SUPPORT = 58;
+        <!-- Accessory Configuration -->
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+          <h2 class="text-xl font-semibold text-gray-800 mb-3">Accessory Configuration</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Manufacturer</label>
+              <input type="text" id="manufacturer-input" value="Samsung Electronics Co., Ltd." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Model</label>
+              <input type="text" id="model-input" value="Galaxy A05" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <input type="text" id="description-input" value="Sample Program" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Version</label>
+              <input type="text" id="version-input" value="1.0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">URL</label>
+              <input type="text" id="url-input" value="https://github.com/gibsson" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Serial Number</label>
+              <input type="text" id="serial-input" value="0000000012345678" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+          </div>
+        </div>
 
-    const AOA_STRING_MAN_ID = 0;
-    const AOA_STRING_MOD_ID = 1;
-    const AOA_STRING_DSC_ID = 2;
-    const AOA_STRING_VER_ID = 3;
-    const AOA_STRING_URL_ID = 4;
-    const AOA_STRING_SER_ID = 5;
+        <!-- Logs -->
+        <div class="bg-gray-800 text-white rounded-lg overflow-hidden">
+          <div class="bg-gray-900 px-4 py-3 flex justify-between items-center">
+            <h2 class="text-lg font-semibold">Connection Log</h2>
+            <button id="clear-logs" class="text-gray-400 hover:text-white">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+              </svg>
+            </button>
+          </div>
+          <div id="logs-container" class="p-4 h-64 overflow-y-auto font-mono text-sm">
+            <div class="log-entry">Welcome to Linux ADK Web. Click 'Connect Device' to begin.</div>
+          </div>
+        </div>
+      </div>
 
-    function App() {
-      const [accessory, setAccessory] = React.useState(defaultAccessory);
-      const [logs, setLogs] = React.useState([]);
-      const [device, setDevice] = React.useState(null);
-      const [aoaVersion, setAoaVersion] = React.useState(null);
-      const [isConnected, setIsConnected] = React.useState(false);
-      const [detectedVendor, setDetectedVendor] = React.useState(null);
+      <!-- Footer -->
+      <div class="bg-gray-100 px-6 py-4 text-center text-gray-600 text-sm">
+        <p>Designed for Android Open Accessory Protocol with WebUSB API support</p>
+      </div>
+    </div>
 
-      const addLog = (message) => {
-        setLogs((prev) => [...prev, message]);
+    <!-- Troubleshooting Modal -->
+    <div id="troubleshoot-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+      <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-xl font-semibold text-gray-800">Troubleshooting Guide</h2>
+        </div>
+        <div class="px-6 py-4 max-h-96 overflow-y-auto">
+          <div class="mb-4">
+            <h3 class="font-semibold text-lg text-blue-600 mb-2">AOA Protocol Connection Issues</h3>
+            <p class="mb-3">The error "A transfer error has occurred" typically indicates one of the following issues:</p>
+            <ol class="list-decimal pl-5 space-y-2">
+              <li>Your device doesn't support AOA protocol</li>
+              <li>USB debugging is enabled on your Android device (disable it)</li>
+              <li>Driver conflicts on your computer</li>
+              <li>The device is already in accessory mode</li>
+            </ol>
+          </div>
+          
+          <div class="mb-4">
+            <h3 class="font-semibold text-lg text-blue-600 mb-2">Step-by-Step Solutions</h3>
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-3">
+              <p class="font-medium">For Samsung devices (like your Galaxy):</p>
+              <p>1. Go to Settings → Developer options</p>
+              <p>2. Disable USB debugging</p>
+              <p>3. Disable OEM unlocking if enabled</p>
+              <p>4. Reconnect your device</p>
+            </div>
+            
+            <div class="bg-blue-50 border-l-4 border-blue-400 p-4">
+              <p class="font-medium">General troubleshooting:</p>
+              <p>1. Restart your PC and Android device</p>
+              <p>2. Try a different USB cable and USB port</p>
+              <p>3. Check if your device manufacturer supports AOA</p>
+            </div>
+          </div>
+        </div>
+        <div class="px-6 py-4 border-t border-gray-200 flex justify-end">
+          <button id="close-modal" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Elements
+      const connectBtn = document.getElementById('connect-btn');
+      const disconnectBtn = document.getElementById('disconnect-btn');
+      const troubleshootBtn = document.getElementById('troubleshoot-btn');
+      const clearLogsBtn = document.getElementById('clear-logs');
+      const closeModalBtn = document.getElementById('close-modal');
+      const troubleshootModal = document.getElementById('troubleshoot-modal');
+      const logsContainer = document.getElementById('logs-container');
+      
+      // Device info elements
+      const deviceNameEl = document.getElementById('device-name');
+      const vendorIdEl = document.getElementById('vendor-id');
+      const productIdEl = document.getElementById('product-id');
+      const manufacturerEl = document.getElementById('manufacturer');
+      
+      // Common Vendor IDs for smartphones
+      const COMMON_VENDOR_IDS = {
+        SAMSUNG: 0x04e8,
+        GOOGLE: 0x18d1,
+        HUAWEI: 0x12d1,
+        XIAOMI: 0x2717,
+        OPPO: 0x22d9,
+        VIVO: 0x2d95,
+        ONEPLUS: 0x2a70,
+        LG: 0x1004,
+        SONY: 0x0fce,
+        MOTOROLA: 0x22b8,
+        HTC: 0x0bb4,
+        NOKIA: 0x0421
       };
+      
+      // AOA constants
+      const AOA_ACCESSORY_VID = 0x18D1;
+      const AOA_ACCESSORY_PID = 0x2D00;
+      const AOA_GET_PROTOCOL = 51;
+      const AOA_SEND_IDENT = 52;
+      const AOA_START_ACCESSORY = 53;
+      
+      let isConnected = false;
+      let currentDevice = null;
 
-      const detectVendorName = (vendorId) => {
+      // Add log entry
+      function addLog(message, type = 'info') {
+        const logEntry = document.createElement('div');
+        logEntry.className = 'log-entry';
+        
+        // Add color based on type
+        if (type === 'error') {
+          logEntry.style.borderLeftColor = '#ef4444';
+        } else if (type === 'success') {
+          logEntry.style.borderLeftColor = '#10b981';
+        } else if (type === 'warning') {
+          logEntry.style.borderLeftColor = '#f59e0b';
+        }
+        
+        // Add timestamp
+        const now = new Date();
+        const timestamp = now.toTimeString().split(' ')[0];
+        logEntry.textContent = `[${timestamp}] ${message}`;
+        
+        logsContainer.appendChild(logEntry);
+        logsContainer.scrollTop = logsContainer.scrollHeight;
+      }
+
+      // Detect vendor name from ID
+      function detectVendorName(vendorId) {
         for (const [vendorName, id] of Object.entries(COMMON_VENDOR_IDS)) {
           if (id === vendorId) {
             return vendorName;
           }
         }
         return `Unknown (0x${vendorId.toString(16).padStart(4, '0')})`;
-      };
+      }
 
-      const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setAccessory((prev) => ({ ...prev, [name]: value }));
-      };
+      // Update device info
+      function updateDeviceInfo(device) {
+        if (device) {
+          deviceNameEl.textContent = device.productName || 'Unknown Device';
+          vendorIdEl.textContent = `0x${device.vendorId.toString(16).padStart(4, '0')} (${detectVendorName(device.vendorId)})`;
+          productIdEl.textContent = `0x${device.productId.toString(16).padStart(4, '0')}`;
+          manufacturerEl.textContent = detectVendorName(device.vendorId);
+        } else {
+          deviceNameEl.textContent = 'Not connected';
+          vendorIdEl.textContent = '-';
+          productIdEl.textContent = '-';
+          manufacturerEl.textContent = '-';
+        }
+      }
 
-      const connectDevice = async () => {
+      // Connect to device
+      async function connectDevice() {
         if (!navigator.usb) {
-          addLog("WebUSB is not supported in this browser (use Chrome). Using mock data.");
+          addLog('WebUSB is not supported in this browser. Please use Chrome.', 'error');
+          addLog('Falling back to mock mode for demonstration.', 'warning');
           simulateDeviceConnection();
           return;
         }
 
         try {
+          addLog('Requesting device access...');
+          
+          // Request device with common vendor IDs
           const device = await navigator.usb.requestDevice({
             filters: Object.values(COMMON_VENDOR_IDS).map(vendorId => ({ vendorId }))
           });
           
+          addLog(`Device selected: ${device.productName}`, 'success');
+          addLog(`Vendor ID: 0x${device.vendorId.toString(16)}, Product ID: 0x${device.productId.toString(16)}`);
+          
           await device.open();
-          setDevice(device);
+          addLog('Device opened successfully');
           
-          // اكتشاف Vendor ID وتحديث الواجهة
-          const vendorName = detectVendorName(device.vendorId);
-          setDetectedVendor(vendorName);
+          currentDevice = device;
+          isConnected = true;
+          updateDeviceInfo(device);
+          updateConnectionUI();
           
-          addLog(`Connected to device: ${device.productName || 'Unknown Device'}`);
-          addLog(`Vendor ID: 0x${device.vendorId.toString(16).padStart(4, '0')} (${vendorName})`);
-          addLog(`Product ID: 0x${device.productId.toString(16).padStart(4, '0')}`);
+          // Try to initialize AOA
+          await initializeAOA(device);
           
-          setIsConnected(true);
-          await initializeAccessory(device);
         } catch (error) {
-          addLog(`Error connecting to device: ${error.message}`);
+          addLog(`Error connecting to device: ${error.message}`, 'error');
           if (error.message.includes("Access denied")) {
-            addLog("Access denied error detected. Troubleshooting steps:");
-            addLog("1. Restart your PC to close any interfering programs.");
-            addLog("2. On Linux: Create /etc/udev/rules.d/50-usb.rules with 'SUBSYSTEM==\"usb\", ATTR{idVendor}==\"04e8\", MODE=\"0666\", GROUP=\"plugdev\"', then run 'sudo udevadm control --reload-rules && sudo udevadm trigger'. Add user to 'plugdev': 'sudo usermod -aG plugdev $USER'. Log out/in.");
-            addLog("3. On Windows: Download Zadig (zadig.akeo.ie), select your Samsung device, install WinUSB driver.");
-            addLog("4. On macOS: Ensure no other apps (e.g., Samsung Smart Switch) are using the device; restart if needed.");
-            addLog("5. Unplug/replug the device, ensure USB debugging is off, and try again. Site must be on HTTPS.");
-            addLog("Falling back to mock mode due to access error.");
-            simulateDeviceConnection();
-          } else {
-            addLog("Unexpected error. Falling back to mock mode.");
-            simulateDeviceConnection();
+            addLog('Access denied. Please check device permissions.', 'error');
+            showTroubleshootingTips();
           }
         }
-      };
+      }
 
-      const simulateDeviceConnection = () => {
-        setDevice({ productName: "Mock Samsung Galaxy", vendorId: AOA_SAMSUNG_VID, productId: SAMSUNG_GALAXY_PID });
-        setIsConnected(true);
-        setDetectedVendor("SAMSUNG");
-        addLog("Simulating device connection with mock data.");
-        initializeAccessory({ mock: true });
-      };
-
-      const initializeAccessory = async (device) => {
+      // Initialize AOA protocol
+      async function initializeAOA(device) {
         try {
-          addLog("Checking if device supports AOA protocol...");
-          const aoaVersion = await getAoaProtocol(device);
-          setAoaVersion(aoaVersion);
-          addLog(`Device supports AOA ${aoaVersion}.0`);
-
-          if (aoaVersion >= 2) {
-            addLog("Requesting audio support...");
-            await requestAudioSupport(device);
+          addLog('Checking AOA protocol support...');
+          
+          // Try to get AOA protocol
+          const result = await device.controlTransferIn({
+            requestType: 'vendor',
+            recipient: 'device',
+            request: AOA_GET_PROTOCOL,
+            value: 0,
+            index: 0
+          }, 2);
+          
+          if (result.status === 'ok') {
+            const buffer = new Uint8Array(result.data.buffer);
+            const aoaVersion = (buffer[1] << 8) | buffer[0];
+            addLog(`Device supports AOA protocol version ${aoaVersion}.0`, 'success');
+            
+            // Send identification
+            await sendIdentification(device);
+            
+            // Start accessory mode
+            addLog('Starting accessory mode...');
+            await device.controlTransferOut({
+              requestType: 'vendor',
+              recipient: 'device',
+              request: AOA_START_ACCESSORY,
+              value: 0,
+              index: 0
+            });
+            
+            addLog('Accessory mode started successfully!', 'success');
+            addLog('You can now communicate with your Android device.', 'success');
+            
+          } else {
+            addLog('AOA protocol not supported by this device.', 'error');
+            addLog('Try disabling USB debugging on your Android device.', 'warning');
           }
-
-          addLog("Sending identification to the device...");
-          await sendIdentification(device, accessory);
-
-          addLog("Turning device into Accessory mode...");
-          await startAccessoryMode(device);
-
-          addLog("Device initialized successfully!");
-          startDataSnooping(device);
         } catch (error) {
-          addLog(`Initialization failed: ${error.message}`);
-          if (error.message.includes("Access denied")) {
-            addLog("Access denied during init. See connection logs for troubleshooting. Falling back to mock.");
-            simulateDeviceConnection();
-          }
+          addLog(`AOA initialization failed: ${error.message}`, 'error');
+          addLog('This device may not support AOA protocol.', 'warning');
+          addLog('Try disabling USB debugging and reconnect.', 'warning');
         }
-      };
+      }
 
-      const getAoaProtocol = async (device) => {
-        if (device.mock) return 2;
-        const result = await device.controlTransferIn({
-          requestType: "vendor",
-          recipient: "device",
-          request: AOA_GET_PROTOCOL,
-          value: 0,
-          index: 0,
-        }, 2);
-        if (result.status === "ok") {
-          const buffer = new Uint8Array(result.data.buffer);
-          return (buffer[1] << 8) | buffer[0];
-        }
-        throw new Error("Failed to get AOA protocol");
-      };
-
-      const sendIdentification = async (device, acc) => {
+      // Send identification data
+      async function sendIdentification(device) {
+        addLog('Sending identification data...');
+        
+        const manufacturer = document.getElementById('manufacturer-input').value;
+        const model = document.getElementById('model-input').value;
+        const description = document.getElementById('description-input').value;
+        const version = document.getElementById('version-input').value;
+        const url = document.getElementById('url-input').value;
+        const serial = document.getElementById('serial-input').value;
+        
         const fields = [
-          { id: AOA_STRING_MAN_ID, value: acc.manufacturer },
-          { id: AOA_STRING_MOD_ID, value: acc.model },
-          { id: AOA_STRING_DSC_ID, value: acc.description },
-          { id: AOA_STRING_VER_ID, value: acc.version },
-          { id: AOA_STRING_URL_ID, value: acc.url },
-          { id: AOA_STRING_SER_ID, value: acc.serial },
+          { id: 0, value: manufacturer },
+          { id: 1, value: model },
+          { id: 2, value: description },
+          { id: 3, value: version },
+          { id: 4, value: url },
+          { id: 5, value: serial }
         ];
-
+        
         for (const field of fields) {
           if (field.value) {
-            addLog(`Sending ${field.id === AOA_STRING_MAN_ID ? "manufacturer" : field.id === AOA_STRING_MOD_ID ? "model" : field.id === AOA_STRING_DSC_ID ? "description" : field.id === AOA_STRING_VER_ID ? "version" : field.id === AOA_STRING_URL_ID ? "url" : "serial"}: ${field.value}`);
-            if (!device.mock) {
-              const data = new TextEncoder().encode(field.value + "\0");
-              await device.controlTransferOut({
-                requestType: "vendor",
-                recipient: "device",
-                request: AOA_SEND_IDENT,
-                value: 0,
-                index: field.id,
-              }, data);
-            }
+            const data = new TextEncoder().encode(field.value + '\0');
+            await device.controlTransferOut({
+              requestType: 'vendor',
+              recipient: 'device',
+              request: AOA_SEND_IDENT,
+              value: 0,
+              index: field.id
+            }, data);
+            
+            addLog(`Sent identifier ${field.id}: ${field.value}`);
           }
         }
-      };
+      }
 
-      const requestAudioSupport = async (device) => {
-        if (device.mock) return;
-        await device.controlTransferOut({
-          requestType: "vendor",
-          recipient: "device",
-          request: AOA_AUDIO_SUPPORT,
-          value: 1,
-          index: 0,
-        });
-      };
-
-      const startAccessoryMode = async (device) => {
-        if (device.mock) return;
-        await device.controlTransferOut({
-          requestType: "vendor",
-          recipient: "device",
-          request: AOA_START_ACCESSORY,
-          value: 0,
-          index: 0,
-        });
-      };
-
-      const startDataSnooping = async (device) => {
-        if (device.mock) {
-          setInterval(() => {
-            const mockData = new Uint8Array([0x41, 0x42, 0x43, 0x44]);
-            addLog(`Received ${mockData.length} bytes: ${Array.from(mockData).map(b => `0x${b.toString(16).padStart(2, "0")}`).join(" ")}`);
-          }, 2000);
-          return;
-        }
-
-        try {
-          await device.selectConfiguration(1);
-          await device.claimInterface(0);
-          while (true) {
-            const result = await device.transferIn(0x81, 512);
-            if (result.status === "ok") {
-              const data = new Uint8Array(result.data.buffer);
-              addLog(`Received ${data.length} bytes: ${Array.from(data).map(b => `0x${b.toString(16).padStart(2, "0")}`).join(" ")}`);
-            } else {
-              addLog("Transfer error");
-            }
-            await new Promise(resolve => setTimeout(resolve, 200));
-          }
-        } catch (error) {
-          addLog(`Snooping error: ${error.message}`);
-        }
-      };
-
-      const disconnectDevice = async () => {
-        if (device && !device.mock) {
+      // Disconnect device
+      async function disconnectDevice() {
+        if (currentDevice) {
           try {
-            await device.close();
-            addLog("Device disconnected");
+            await currentDevice.close();
+            addLog('Device disconnected successfully.', 'success');
           } catch (error) {
-            addLog(`Error disconnecting: ${error.message}`);
+            addLog(`Error disconnecting device: ${error.message}`, 'error');
           }
         }
-        setDevice(null);
-        setIsConnected(false);
-        setAoaVersion(null);
-        setDetectedVendor(null);
-      };
+        
+        currentDevice = null;
+        isConnected = false;
+        updateDeviceInfo(null);
+        updateConnectionUI();
+      }
 
-      return (
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h1 className="text-2xl font-bold mb-4">Linux ADK Web</h1>
-          
-          {detectedVendor && (
-            <div className="mb-4 p-3 bg-blue-100 rounded-lg">
-              <h2 className="font-semibold">Detected Device:</h2>
-              <p className="font-mono">{detectedVendor}</p>
-              {device && (
-                <p className="text-sm">
-                  Vendor ID: 0x{device.vendorId.toString(16).padStart(4, '0')}, 
-                  Product ID: 0x{device.productId.toString(16).padStart(4, '0')}
-                </p>
-              )}
-            </div>
-          )}
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            {Object.keys(defaultAccessory).map((key) => (
-              <div key={key} className="flex flex-col">
-                <label className="font-semibold capitalize">{key}</label>
-                <input
-                  type="text"
-                  name={key}
-                  value={accessory[key]}
-                  onChange={handleInputChange}
-                  className="border p-2 rounded"
-                  disabled={isConnected}
-                />
-              </div>
-            ))}
-          </div>
-          <div className="flex space-x-4 mb-4">
-            <button
-              onClick={connectDevice}
-              disabled={isConnected}
-              className="bg-blue-500 text-white p-2 rounded disabled:bg-gray-400"
-            >
-              Connect Device
-            </button>
-            <button
-              onClick={disconnectDevice}
-              disabled={!isConnected}
-              className="bg-red-500 text-white p-2 rounded disabled:bg-gray-400"
-            >
-              Disconnect
-            </button>
-          </div>
-          <div className="bg-gray-800 text-white p-4 rounded h-64 overflow-y-auto">
-            <h2 className="text-lg font-semibold mb-2">Logs</h2>
-            {logs.map((log, index) => (
-              <p key={index} className="font-mono text-sm">{log}</p>
-            ))}
-          </div>
-        </div>
-      );
-    }
+      // Simulate device connection (for demo purposes)
+      function simulateDeviceConnection() {
+        addLog('Simulating device connection...', 'warning');
+        
+        currentDevice = {
+          productName: 'SAMSUNG_Android',
+          vendorId: 0x04e8,
+          productId: 0x6860
+        };
+        
+        isConnected = true;
+        updateDeviceInfo(currentDevice);
+        updateConnectionUI();
+        
+        addLog('Simulated Samsung Galaxy device connected', 'success');
+        addLog('This is a demonstration only. Real AOA protocol would be initialized now.', 'warning');
+      }
 
-    const root = ReactDOM.createRoot(document.getElementById("root"));
-    root.render(<App />);
+      // Update connection UI state
+      function updateConnectionUI() {
+        connectBtn.disabled = isConnected;
+        disconnectBtn.disabled = !isConnected;
+        
+        if (isConnected) {
+          disconnectBtn.classList.remove('bg-gray-400');
+          disconnectBtn.classList.add('bg-red-600', 'hover:bg-red-700');
+        } else {
+          disconnectBtn.classList.add('bg-gray-400');
+          disconnectBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
+        }
+      }
+
+      // Show troubleshooting tips
+      function showTroubleshootingTips() {
+        troubleshootModal.classList.remove('hidden');
+      }
+
+      // Event listeners
+      connectBtn.addEventListener('click', connectDevice);
+      disconnectBtn.addEventListener('click', disconnectDevice);
+      troubleshootBtn.addEventListener('click', showTroubleshootingTips);
+      
+      clearLogsBtn.addEventListener('click', () => {
+        logsContainer.innerHTML = '';
+        addLog('Logs cleared');
+      });
+      
+      closeModalBtn.addEventListener('click', () => {
+        troubleshootModal.classList.add('hidden');
+      });
+
+      // Initial setup
+      addLog('Linux ADK Web initialized. Ready to connect to Android devices.');
+      updateConnectionUI();
+      
+      // Check if WebUSB is available
+      if (!navigator.usb) {
+        addLog('WebUSB API is not available in this browser. Please use Chrome.', 'error');
+        addLog('Simulation mode enabled for demonstration purposes.', 'warning');
+        
+        // Enable simulate button
+        const simulateBtn = document.createElement('button');
+        simulateBtn.textContent = 'Simulate Connection';
+        simulateBtn.className = 'bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 flex items-center ml-auto';
+        simulateBtn.addEventListener('click', simulateDeviceConnection);
+        
+        connectBtn.parentNode.appendChild(simulateBtn);
+      }
+    });
   </script>
 </body>
 </html>
