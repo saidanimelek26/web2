@@ -24,6 +24,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.18.9/babel.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode.react/3.1.0/qrcode.min.js"></script>
 </head>
 <body>
   <div id="root"></div>
@@ -118,7 +119,6 @@
         }
 
         try {
-          // Log available USB devices
           const devices = await navigator.usb.getDevices();
           addLog(`Found ${devices.length} USB devices:`);
           devices.forEach((d) =>
@@ -133,7 +133,6 @@
           addLog(`Device configuration: ${device.configuration ? device.configuration.configurationValue : "Not set"}`);
           setDevice(device);
 
-          // Generate unique device ID
           const uniqueId = device.serialNumber || `${device.vendorId.toString(16).padStart(4, "0")}:${device.productId.toString(16).padStart(4, "0")}:${Date.now()}`;
           setDeviceId(uniqueId);
 
@@ -146,8 +145,7 @@
         } catch (error) {
           addLog(`Error connecting to device: ${error.message}`);
           if (error.message.includes("No device selected")) {
-            addLog("No device was selected. Ensure the device is connected and matches the VID/PID filters.");
-            addLog("Troubleshooting: Check USB cable (must support data), ensure device is in MTP or PTP mode, and try another port.");
+            addLog("No device was selected. Ensure the device is connected, in MTP/PTP mode, and matches the VID/PID filters.");
             addLog("Falling back to mock mode.");
             simulateDeviceConnection();
           } else if (error.message.includes("Access denied")) {
@@ -201,16 +199,16 @@
           addLog("Turning device into Accessory mode...");
           await startAccessoryMode(device);
 
-          addLog("Device initialized successfully! URL should open in browser if device supports AOA.");
+          addLog("Device initialized successfully! URL should open in browser if an AOA-compatible app is installed.");
           startDataSnooping(device);
         } catch (error) {
           addLog(`Initialization failed: ${error.message}`);
           addLog("Troubleshooting AOA failure:");
-          addLog("1. Verify device supports AOA (check manufacturer specs, e.g., older Samsung Galaxy models).");
+          addLog("1. Verify device supports AOA (e.g., Galaxy S5/S6, not all devices like Galaxy A05 support it).");
           addLog("2. Ensure USB cable supports data transfer (not charge-only).");
           addLog("3. Set device to MTP or PTP mode in USB settings.");
-          addLog("4. Install an AOA-compatible app on the device to handle the URL (see documentation).");
-          addLog("5. Test with another AOA-compatible device (e.g., Galaxy S5/S6).");
+          addLog("4. Install an AOA-compatible app on the device to open the URL in the browser.");
+          addLog("5. Test with another AOA-compatible device.");
           addLog(`URL intended to send: ${window.location.href}`);
           addLog("Falling back to mock mode.");
           simulateDeviceConnection();
@@ -242,7 +240,7 @@
               throw new Error(`AOA check failed after ${maxRetries} attempts: ${error.message}`);
             }
             addLog(`AOA check attempt ${attempt} failed: ${error.message}. Retrying...`);
-            await new Promise(resolve => setTimeout(resolve, 500)); // Wait before retry
+            await new Promise(resolve => setTimeout(resolve, 500));
           }
         }
       };
@@ -388,6 +386,13 @@
             <div className="mb-4">
               <h2 className="text-lg font-semibold">Device ID</h2>
               <p className="font-mono text-sm">{deviceId}</p>
+            </div>
+          )}
+          {!isConnected && (
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold">Scan to Open URL</h2>
+              <QRCode value={window.location.href} size={128} />
+              <p className="text-sm mt-2">If the browser doesn't open, scan this QR code on your device.</p>
             </div>
           )}
           <div className="bg-gray-800 text-white p-4 rounded h-64 overflow-y-auto">
