@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Linux ADK Web - Enhanced</title>
+  <title>Samsung AOA Web - Fixed</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
-      background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+      background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -26,43 +26,67 @@
     }
     .device-card {
       transition: all 0.3s ease;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
     }
-    .device-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    .blink {
+      animation: blink 2s infinite;
+    }
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
   </style>
 </head>
 <body>
   <div id="app" class="container mx-auto px-4 py-8">
-    <div class="bg-white rounded-xl shadow-2xl overflow-hidden max-w-4xl">
+    <div class="glass rounded-xl shadow-2xl overflow-hidden max-w-4xl">
       <!-- Header -->
-      <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6">
-        <h1 class="text-3xl font-bold mb-2">Linux ADK Web</h1>
-        <p class="opacity-90">Android Open Accessory Protocol Web Implementation</p>
+      <div class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white p-6">
+        <h1 class="text-3xl font-bold mb-2 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-3" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+          Samsung AOA Web
+        </h1>
+        <p class="opacity-90">Pure Android Open Accessory Protocol for Samsung Devices</p>
       </div>
 
       <!-- Main Content -->
       <div class="p-6">
+        <!-- Connection Status -->
+        <div id="connection-status" class="glass border border-yellow-500 rounded-lg p-4 mb-6 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <p class="text-yellow-200">Not connected to any device</p>
+        </div>
+
         <!-- Device Info -->
-        <div id="device-info" class="device-card bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <h2 class="text-xl font-semibold text-blue-800 mb-3">Device Information</h2>
+        <div id="device-info" class="device-card glass border border-blue-500 rounded-lg p-4 mb-6 hidden">
+          <h2 class="text-xl font-semibold text-blue-300 mb-3">Device Information</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <p class="text-sm text-blue-600">Device Name</p>
-              <p id="device-name" class="font-medium">Not connected</p>
+              <p class="text-sm text-blue-400">Device Name</p>
+              <p id="device-name" class="font-medium text-white">-</p>
             </div>
             <div>
-              <p class="text-sm text-blue-600">Vendor ID</p>
-              <p id="vendor-id" class="font-medium">-</p>
+              <p class="text-sm text-blue-400">Vendor ID</p>
+              <p id="vendor-id" class="font-medium text-white">-</p>
             </div>
             <div>
-              <p class="text-sm text-blue-600">Product ID</p>
-              <p id="product-id" class="font-medium">-</p>
+              <p class="text-sm text-blue-400">Product ID</p>
+              <p id="product-id" class="font-medium text-white">-</p>
             </div>
             <div>
-              <p class="text-sm text-blue-600">Manufacturer</p>
-              <p id="manufacturer" class="font-medium">-</p>
+              <p class="text-sm text-blue-400">AOA Version</p>
+              <p id="aoa-version" class="font-medium text-white">-</p>
             </div>
           </div>
         </div>
@@ -73,116 +97,78 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd" />
             </svg>
-            Connect Device
+            Connect Samsung Device
           </button>
-          <button id="disconnect-btn" disabled class="bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 flex items-center">
+          <button id="disconnect-btn" disabled class="bg-gray-600 text-gray-300 font-semibold py-3 px-6 rounded-lg transition duration-200 flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
             </svg>
             Disconnect
           </button>
-          <button id="troubleshoot-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-            </svg>
-            Troubleshoot
-          </button>
         </div>
 
         <!-- Accessory Configuration -->
-        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
-          <h2 class="text-xl font-semibold text-gray-800 mb-3">Accessory Configuration</h2>
+        <div class="glass border border-gray-700 rounded-lg p-4 mb-6">
+          <h2 class="text-xl font-semibold text-white mb-3">Samsung Accessory Configuration</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Manufacturer</label>
-              <input type="text" id="manufacturer-input" value="Samsung Electronics Co., Ltd." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <label class="block text-sm font-medium text-gray-300 mb-1">Manufacturer</label>
+              <input type="text" id="manufacturer-input" value="Samsung Electronics Co., Ltd." class="w-full px-4 py-2 bg-gray-800 text-white border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Model</label>
-              <input type="text" id="model-input" value="Galaxy A05" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <label class="block text-sm font-medium text-gray-300 mb-1">Model</label>
+              <input type="text" id="model-input" value="Galaxy A05" class="w-full px-4 py-2 bg-gray-800 text-white border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <input type="text" id="description-input" value="Sample Program" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <label class="block text-sm font-medium text-gray-300 mb-1">Description</label>
+              <input type="text" id="description-input" value="Samsung AOA Accessory" class="w-full px-4 py-2 bg-gray-800 text-white border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Version</label>
-              <input type="text" id="version-input" value="1.0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <label class="block text-sm font-medium text-gray-300 mb-1">Version</label>
+              <input type="text" id="version-input" value="1.0" class="w-full px-4 py-2 bg-gray-800 text-white border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">URL</label>
-              <input type="text" id="url-input" value="https://github.com/gibsson" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <label class="block text-sm font-medium text-gray-300 mb-1">URL</label>
+              <input type="text" id="url-input" value="https://www.samsung.com" class="w-full px-4 py-2 bg-gray-800 text-white border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Serial Number</label>
-              <input type="text" id="serial-input" value="0000000012345678" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <label class="block text-sm font-medium text-gray-300 mb-1">Serial Number</label>
+              <input type="text" id="serial-input" value="SN123456789" class="w-full px-4 py-2 bg-gray-800 text-white border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
             </div>
           </div>
         </div>
 
+        <!-- Special Note for Samsung -->
+        <div class="bg-purple-900 bg-opacity-30 border border-purple-700 rounded-lg p-4 mb-6">
+          <h2 class="text-xl font-semibold text-purple-300 mb-2 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
+            </svg>
+            Important for Samsung Devices
+          </h2>
+          <p class="text-purple-200">Make sure USB debugging is <span class="font-bold">DISABLED</span> on your Samsung device. AOA protocol requires USB debugging to be turned off.</p>
+          <p class="text-purple-200 mt-2">Go to: Settings → Developer options → USB debugging → Disable</p>
+        </div>
+
         <!-- Logs -->
-        <div class="bg-gray-800 text-white rounded-lg overflow-hidden">
-          <div class="bg-gray-900 px-4 py-3 flex justify-between items-center">
-            <h2 class="text-lg font-semibold">Connection Log</h2>
+        <div class="bg-gray-900 border border-gray-700 rounded-lg overflow-hidden">
+          <div class="bg-gray-800 px-4 py-3 flex justify-between items-center">
+            <h2 class="text-lg font-semibold text-white">Connection Log</h2>
             <button id="clear-logs" class="text-gray-400 hover:text-white">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
               </svg>
             </button>
           </div>
-          <div id="logs-container" class="p-4 h-64 overflow-y-auto font-mono text-sm">
-            <div class="log-entry">Welcome to Linux ADK Web. Click 'Connect Device' to begin.</div>
+          <div id="logs-container" class="p-4 h-64 overflow-y-auto font-mono text-sm text-green-400 bg-black bg-opacity-70">
+            <div class="log-entry">Welcome to Samsung AOA Web. Click 'Connect Samsung Device' to begin.</div>
           </div>
         </div>
       </div>
 
       <!-- Footer -->
-      <div class="bg-gray-100 px-6 py-4 text-center text-gray-600 text-sm">
-        <p>Designed for Android Open Accessory Protocol with WebUSB API support</p>
-      </div>
-    </div>
-
-    <!-- Troubleshooting Modal -->
-    <div id="troubleshoot-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-      <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-xl font-semibold text-gray-800">Troubleshooting Guide</h2>
-        </div>
-        <div class="px-6 py-4 max-h-96 overflow-y-auto">
-          <div class="mb-4">
-            <h3 class="font-semibold text-lg text-blue-600 mb-2">AOA Protocol Connection Issues</h3>
-            <p class="mb-3">The error "A transfer error has occurred" typically indicates one of the following issues:</p>
-            <ol class="list-decimal pl-5 space-y-2">
-              <li>Your device doesn't support AOA protocol</li>
-              <li>USB debugging is enabled on your Android device (disable it)</li>
-              <li>Driver conflicts on your computer</li>
-              <li>The device is already in accessory mode</li>
-            </ol>
-          </div>
-          
-          <div class="mb-4">
-            <h3 class="font-semibold text-lg text-blue-600 mb-2">Step-by-Step Solutions</h3>
-            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-3">
-              <p class="font-medium">For Samsung devices (like your Galaxy):</p>
-              <p>1. Go to Settings → Developer options</p>
-              <p>2. Disable USB debugging</p>
-              <p>3. Disable OEM unlocking if enabled</p>
-              <p>4. Reconnect your device</p>
-            </div>
-            
-            <div class="bg-blue-50 border-l-4 border-blue-400 p-4">
-              <p class="font-medium">General troubleshooting:</p>
-              <p>1. Restart your PC and Android device</p>
-              <p>2. Try a different USB cable and USB port</p>
-              <p>3. Check if your device manufacturer supports AOA</p>
-            </div>
-          </div>
-        </div>
-        <div class="px-6 py-4 border-t border-gray-200 flex justify-end">
-          <button id="close-modal" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
-            Close
-          </button>
-        </div>
+      <div class="bg-gray-900 bg-opacity-70 px-6 py-4 text-center text-gray-400 text-sm">
+        <p>Pure Android Open Accessory Protocol implementation for Samsung devices</p>
       </div>
     </div>
   </div>
@@ -192,40 +178,30 @@
       // Elements
       const connectBtn = document.getElementById('connect-btn');
       const disconnectBtn = document.getElementById('disconnect-btn');
-      const troubleshootBtn = document.getElementById('troubleshoot-btn');
       const clearLogsBtn = document.getElementById('clear-logs');
-      const closeModalBtn = document.getElementById('close-modal');
-      const troubleshootModal = document.getElementById('troubleshoot-modal');
       const logsContainer = document.getElementById('logs-container');
+      const deviceInfo = document.getElementById('device-info');
+      const connectionStatus = document.getElementById('connection-status');
       
       // Device info elements
       const deviceNameEl = document.getElementById('device-name');
       const vendorIdEl = document.getElementById('vendor-id');
       const productIdEl = document.getElementById('product-id');
-      const manufacturerEl = document.getElementById('manufacturer');
-      
-      // Common Vendor IDs for smartphones
-      const COMMON_VENDOR_IDS = {
-        SAMSUNG: 0x04e8,
-        GOOGLE: 0x18d1,
-        HUAWEI: 0x12d1,
-        XIAOMI: 0x2717,
-        OPPO: 0x22d9,
-        VIVO: 0x2d95,
-        ONEPLUS: 0x2a70,
-        LG: 0x1004,
-        SONY: 0x0fce,
-        MOTOROLA: 0x22b8,
-        HTC: 0x0bb4,
-        NOKIA: 0x0421
-      };
+      const aoaVersionEl = document.getElementById('aoa-version');
       
       // AOA constants
       const AOA_ACCESSORY_VID = 0x18D1;
-      const AOA_ACCESSORY_PID = 0x2D00;
       const AOA_GET_PROTOCOL = 51;
       const AOA_SEND_IDENT = 52;
       const AOA_START_ACCESSORY = 53;
+      const AOA_AUDIO_SUPPORT = 58;
+      
+      const AOA_STRING_MAN_ID = 0;
+      const AOA_STRING_MOD_ID = 1;
+      const AOA_STRING_DSC_ID = 2;
+      const AOA_STRING_VER_ID = 3;
+      const AOA_STRING_URL_ID = 4;
+      const AOA_STRING_SER_ID = 5;
       
       let isConnected = false;
       let currentDevice = null;
@@ -238,10 +214,13 @@
         // Add color based on type
         if (type === 'error') {
           logEntry.style.borderLeftColor = '#ef4444';
+          logEntry.style.color = '#f87171';
         } else if (type === 'success') {
           logEntry.style.borderLeftColor = '#10b981';
+          logEntry.style.color = '#6ee7b7';
         } else if (type === 'warning') {
           logEntry.style.borderLeftColor = '#f59e0b';
+          logEntry.style.color = '#fcd34d';
         }
         
         // Add timestamp
@@ -253,46 +232,66 @@
         logsContainer.scrollTop = logsContainer.scrollHeight;
       }
 
-      // Detect vendor name from ID
-      function detectVendorName(vendorId) {
-        for (const [vendorName, id] of Object.entries(COMMON_VENDOR_IDS)) {
-          if (id === vendorId) {
-            return vendorName;
-          }
+      // Update device info
+      function updateDeviceInfo(device, aoaVersion = null) {
+        if (device) {
+          deviceInfo.classList.remove('hidden');
+          deviceNameEl.textContent = device.productName || 'Unknown Device';
+          vendorIdEl.textContent = `0x${device.vendorId.toString(16).padStart(4, '0')}`;
+          productIdEl.textContent = `0x${device.productId.toString(16).padStart(4, '0')}`;
+          aoaVersionEl.textContent = aoaVersion ? `${aoaVersion}.0` : 'Not supported';
+          
+          // Update connection status
+          connectionStatus.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <p class="text-green-200">Connected to Samsung device</p>
+          `;
+          connectionStatus.classList.remove('border-yellow-500');
+          connectionStatus.classList.add('border-green-500');
+        } else {
+          deviceInfo.classList.add('hidden');
+          
+          // Update connection status
+          connectionStatus.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <p class="text-yellow-200">Not connected to any device</p>
+          `;
+          connectionStatus.classList.remove('border-green-500');
+          connectionStatus.classList.add('border-yellow-500');
         }
-        return `Unknown (0x${vendorId.toString(16).padStart(4, '0')})`;
       }
 
-      // Update device info
-      function updateDeviceInfo(device) {
-        if (device) {
-          deviceNameEl.textContent = device.productName || 'Unknown Device';
-          vendorIdEl.textContent = `0x${device.vendorId.toString(16).padStart(4, '0')} (${detectVendorName(device.vendorId)})`;
-          productIdEl.textContent = `0x${device.productId.toString(16).padStart(4, '0')}`;
-          manufacturerEl.textContent = detectVendorName(device.vendorId);
+      // Update connection UI state
+      function updateConnectionUI() {
+        connectBtn.disabled = isConnected;
+        disconnectBtn.disabled = !isConnected;
+        
+        if (isConnected) {
+          disconnectBtn.classList.remove('bg-gray-600', 'text-gray-300');
+          disconnectBtn.classList.add('bg-red-600', 'hover:bg-red-700', 'text-white');
         } else {
-          deviceNameEl.textContent = 'Not connected';
-          vendorIdEl.textContent = '-';
-          productIdEl.textContent = '-';
-          manufacturerEl.textContent = '-';
+          disconnectBtn.classList.add('bg-gray-600', 'text-gray-300');
+          disconnectBtn.classList.remove('bg-red-600', 'hover:bg-red-700', 'text-white');
         }
       }
 
       // Connect to device
       async function connectDevice() {
         if (!navigator.usb) {
-          addLog('WebUSB is not supported in this browser. Please use Chrome.', 'error');
-          addLog('Falling back to mock mode for demonstration.', 'warning');
-          simulateDeviceConnection();
+          addLog('WebUSB API is not available in this browser. Please use Chrome.', 'error');
           return;
         }
 
         try {
           addLog('Requesting device access...');
           
-          // Request device with common vendor IDs
+          // Request device with Samsung vendor ID
           const device = await navigator.usb.requestDevice({
-            filters: Object.values(COMMON_VENDOR_IDS).map(vendorId => ({ vendorId }))
+            filters: [{ vendorId: 0x04e8 }] // Samsung vendor ID
           });
           
           addLog(`Device selected: ${device.productName}`, 'success');
@@ -303,17 +302,16 @@
           
           currentDevice = device;
           isConnected = true;
-          updateDeviceInfo(device);
           updateConnectionUI();
           
           // Try to initialize AOA
           await initializeAOA(device);
           
         } catch (error) {
-          addLog(`Error connecting to device: ${error.message}`, 'error');
-          if (error.message.includes("Access denied")) {
-            addLog('Access denied. Please check device permissions.', 'error');
-            showTroubleshootingTips();
+          if (error.message.includes("No device selected")) {
+            addLog('No device selected. Please try again and select your Samsung device.', 'warning');
+          } else {
+            addLog(`Error connecting to device: ${error.message}`, 'error');
           }
         }
       }
@@ -332,13 +330,15 @@
             index: 0
           }, 2);
           
-          if (result.status === 'ok') {
+          if (result.status === 'ok' && result.data && result.data.byteLength >= 2) {
             const buffer = new Uint8Array(result.data.buffer);
             const aoaVersion = (buffer[1] << 8) | buffer[0];
             addLog(`Device supports AOA protocol version ${aoaVersion}.0`, 'success');
             
+            updateDeviceInfo(device, aoaVersion);
+            
             // Send identification
-            await sendIdentification(device);
+            await sendIdentification(device, aoaVersion);
             
             // Start accessory mode
             addLog('Starting accessory mode...');
@@ -351,21 +351,23 @@
             });
             
             addLog('Accessory mode started successfully!', 'success');
-            addLog('You can now communicate with your Android device.', 'success');
+            addLog('Your Samsung device is now in AOA mode.', 'success');
             
           } else {
             addLog('AOA protocol not supported by this device.', 'error');
-            addLog('Try disabling USB debugging on your Android device.', 'warning');
+            addLog('Make sure USB debugging is disabled on your Samsung device.', 'warning');
+            updateDeviceInfo(device, null);
           }
         } catch (error) {
           addLog(`AOA initialization failed: ${error.message}`, 'error');
           addLog('This device may not support AOA protocol.', 'warning');
-          addLog('Try disabling USB debugging and reconnect.', 'warning');
+          addLog('Make sure USB debugging is disabled and try again.', 'warning');
+          updateDeviceInfo(device, null);
         }
       }
 
       // Send identification data
-      async function sendIdentification(device) {
+      async function sendIdentification(device, aoaVersion) {
         addLog('Sending identification data...');
         
         const manufacturer = document.getElementById('manufacturer-input').value;
@@ -376,26 +378,46 @@
         const serial = document.getElementById('serial-input').value;
         
         const fields = [
-          { id: 0, value: manufacturer },
-          { id: 1, value: model },
-          { id: 2, value: description },
-          { id: 3, value: version },
-          { id: 4, value: url },
-          { id: 5, value: serial }
+          { id: AOA_STRING_MAN_ID, value: manufacturer },
+          { id: AOA_STRING_MOD_ID, value: model },
+          { id: AOA_STRING_DSC_ID, value: description },
+          { id: AOA_STRING_VER_ID, value: version },
+          { id: AOA_STRING_URL_ID, value: url },
+          { id: AOA_STRING_SER_ID, value: serial }
         ];
         
         for (const field of fields) {
           if (field.value) {
             const data = new TextEncoder().encode(field.value + '\0');
+            try {
+              await device.controlTransferOut({
+                requestType: 'vendor',
+                recipient: 'device',
+                request: AOA_SEND_IDENT,
+                value: 0,
+                index: field.id
+              }, data);
+              
+              addLog(`Sent identifier ${field.id}: ${field.value}`);
+            } catch (error) {
+              addLog(`Error sending identifier ${field.id}: ${error.message}`, 'warning');
+            }
+          }
+        }
+        
+        if (aoaVersion >= 2) {
+          addLog('Requesting audio support...');
+          try {
             await device.controlTransferOut({
               requestType: 'vendor',
               recipient: 'device',
-              request: AOA_SEND_IDENT,
-              value: 0,
-              index: field.id
-            }, data);
-            
-            addLog(`Sent identifier ${field.id}: ${field.value}`);
+              request: AOA_AUDIO_SUPPORT,
+              value: 1,
+              index: 0
+            }, new ArrayBuffer(0));
+            addLog('Audio support requested');
+          } catch (error) {
+            addLog(`Error requesting audio support: ${error.message}`, 'warning');
           }
         }
       }
@@ -417,74 +439,18 @@
         updateConnectionUI();
       }
 
-      // Simulate device connection (for demo purposes)
-      function simulateDeviceConnection() {
-        addLog('Simulating device connection...', 'warning');
-        
-        currentDevice = {
-          productName: 'SAMSUNG_Android',
-          vendorId: 0x04e8,
-          productId: 0x6860
-        };
-        
-        isConnected = true;
-        updateDeviceInfo(currentDevice);
-        updateConnectionUI();
-        
-        addLog('Simulated Samsung Galaxy device connected', 'success');
-        addLog('This is a demonstration only. Real AOA protocol would be initialized now.', 'warning');
-      }
-
-      // Update connection UI state
-      function updateConnectionUI() {
-        connectBtn.disabled = isConnected;
-        disconnectBtn.disabled = !isConnected;
-        
-        if (isConnected) {
-          disconnectBtn.classList.remove('bg-gray-400');
-          disconnectBtn.classList.add('bg-red-600', 'hover:bg-red-700');
-        } else {
-          disconnectBtn.classList.add('bg-gray-400');
-          disconnectBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
-        }
-      }
-
-      // Show troubleshooting tips
-      function showTroubleshootingTips() {
-        troubleshootModal.classList.remove('hidden');
-      }
-
       // Event listeners
       connectBtn.addEventListener('click', connectDevice);
       disconnectBtn.addEventListener('click', disconnectDevice);
-      troubleshootBtn.addEventListener('click', showTroubleshootingTips);
       
       clearLogsBtn.addEventListener('click', () => {
         logsContainer.innerHTML = '';
         addLog('Logs cleared');
       });
-      
-      closeModalBtn.addEventListener('click', () => {
-        troubleshootModal.classList.add('hidden');
-      });
 
       // Initial setup
-      addLog('Linux ADK Web initialized. Ready to connect to Android devices.');
+      addLog('Samsung AOA Web initialized. Ready to connect to Samsung devices.');
       updateConnectionUI();
-      
-      // Check if WebUSB is available
-      if (!navigator.usb) {
-        addLog('WebUSB API is not available in this browser. Please use Chrome.', 'error');
-        addLog('Simulation mode enabled for demonstration purposes.', 'warning');
-        
-        // Enable simulate button
-        const simulateBtn = document.createElement('button');
-        simulateBtn.textContent = 'Simulate Connection';
-        simulateBtn.className = 'bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 flex items-center ml-auto';
-        simulateBtn.addEventListener('click', simulateDeviceConnection);
-        
-        connectBtn.parentNode.appendChild(simulateBtn);
-      }
     });
   </script>
 </body>
