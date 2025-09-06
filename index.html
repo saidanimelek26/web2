@@ -29,7 +29,6 @@
   <div id="root"></div>
   <script type="text/babel">
     const defaultAccessory = {
-      device: "04e8:6860", // Samsung Galaxy device as default
       manufacturer: "Samsung Electronics Co., Ltd.",
       model: "Galaxy A05",
       description: "Sample Program",
@@ -38,32 +37,50 @@
       serial: "0000000012345678",
     };
 
-    // Expanded Vendor IDs for Android manufacturers
-    const VENDOR_IDS = {
-      GOOGLE: 0x18D1,
-      SAMSUNG: 0x04E8,
-      HUAWEI: 0x12D1,
-      XIAOMI: 0x2717,
-      OPPO: 0x22D9,
-      VIVO: 0x2D95,
-      SONY: 0x054C,
-      LG: 0x1004,
-      MOTOROLA: 0x22B8,
-      HTC: 0x0BB4,
-      ONEPLUS: 0x2A70,
-      LENOVO: 0x17EF,
-      ASUS: 0x0B05,
-      ZTE: 0x19D2,
-      NOKIA: 0x2E04,
-    };
+    // Expanded list of VIDs and PIDs for known devices
+    const DEVICE_FILTERS = [
+      { vendorId: 0x18D1 }, // Google
+      { vendorId: 0x04E8, productId: 0x6860 }, // Samsung Galaxy
+      { vendorId: 0x04E8 }, // Samsung (general)
+      { vendorId: 0x12D1 }, // Huawei
+      { vendorId: 0x2717 }, // Xiaomi
+      { vendorId: 0x22D9 }, // Oppo
+      { vendorId: 0x2D95 }, // Vivo
+      { vendorId: 0x054C }, // Sony
+      { vendorId: 0x1004 }, // LG
+      { vendorId: 0x22B8 }, // Motorola
+      { vendorId: 0x0BB4 }, // HTC
+      { vendorId: 0x2A70 }, // OnePlus
+      { vendorId: 0x17EF }, // Lenovo
+      { vendorId: 0x0B05 }, // Asus
+      { vendorId: 0x19D2 }, // ZTE
+      { vendorId: 0x2E04 }, // Nokia (HMD Global)
+      // AOA-specific PIDs
+      { vendorId: 0x18D1, productId: 0x2D00 }, // AOA Accessory
+      { vendorId: 0x18D1, productId: 0x2D01 }, // AOA Accessory + ADB
+      { vendorId: 0x18D1, productId: 0x2D02 }, // AOA Audio
+      { vendorId: 0x18D1, productId: 0x2D03 }, // AOA Audio + ADB
+      { vendorId: 0x18D1, productId: 0x2D04 }, // AOA Accessory + Audio
+      { vendorId: 0x18D1, productId: 0x2D05 }, // AOA Accessory + Audio + ADB
+    ];
 
-    const AOA_ACCESSORY_PID = 0x2D00;
-    const AOA_ACCESSORY_ADB_PID = 0x2D01;
-    const AOA_AUDIO_PID = 0x2D02;
-    const AOA_AUDIO_ADB_PID = 0x2D03;
-    const AOA_ACCESSORY_AUDIO_PID = 0x2D04;
-    const AOA_ACCESSORY_AUDIO_ADB_PID = 0x2D05;
-    const SAMSUNG_GALAXY_PID = 0x6860;
+    const VENDOR_NAMES = {
+      0x18D1: "Google",
+      0x04E8: "Samsung",
+      0x12D1: "Huawei",
+      0x2717: "Xiaomi",
+      0x22D9: "Oppo",
+      0x2D95: "Vivo",
+      0x054C: "Sony",
+      0x1004: "LG",
+      0x22B8: "Motorola",
+      0x0BB4: "HTC",
+      0x2A70: "OnePlus",
+      0x17EF: "Lenovo",
+      0x0B05: "Asus",
+      0x19D2: "ZTE",
+      0x2E04: "Nokia",
+    };
 
     const AOA_GET_PROTOCOL = 51;
     const AOA_SEND_IDENT = 52;
@@ -95,9 +112,7 @@
       };
 
       const getVendorName = (vendorId) => {
-        return Object.keys(VENDOR_IDS).find(
-          (key) => VENDOR_IDS[key] === vendorId
-        ) || "Unknown Vendor";
+        return VENDOR_NAMES[vendorId] || "Unknown Vendor";
       };
 
       const connectDevice = async () => {
@@ -109,13 +124,13 @@
 
         try {
           const device = await navigator.usb.requestDevice({
-            filters: Object.values(VENDOR_IDS).map((vid) => ({ vendorId: vid })),
+            filters: DEVICE_FILTERS,
           });
           await device.open();
           setDevice(device);
 
-          // Generate or retrieve device ID
-          const uniqueId = device.serialNumber || `${device.vendorId}:${device.productId}:${Date.now()}`;
+          // Generate unique device ID
+          const uniqueId = device.serialNumber || `${device.vendorId.toString(16).padStart(4, "0")}:${device.productId.toString(16).padStart(4, "0")}:${Date.now()}`;
           setDeviceId(uniqueId);
 
           addLog(`Connected to device: ${device.productName || "Unknown Device"}`);
@@ -145,8 +160,8 @@
       const simulateDeviceConnection = () => {
         const mockDevice = {
           productName: "Mock Samsung Galaxy",
-          vendorId: VENDOR_IDS.SAMSUNG,
-          productId: SAMSUNG_GALAXY_PID,
+          vendorId: 0x04E8,
+          productId: 0x6860,
           serialNumber: "MOCK123456789",
           mock: true,
         };
