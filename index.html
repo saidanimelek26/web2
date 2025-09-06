@@ -29,7 +29,7 @@
   <div id="root"></div>
   <script type="text/babel">
     const defaultAccessory = {
-      device: "04e8:6860", // Updated for Samsung Galaxy device
+      device: "04e8:6860", // Samsung Galaxy device as default
       manufacturer: "Samsung Electronics Co., Ltd.",
       model: "Galaxy A05",
       description: "Sample Program",
@@ -38,15 +38,32 @@
       serial: "0000000012345678",
     };
 
-    const AOA_ACCESSORY_VID = 0x18D1; // Google
-    const AOA_SAMSUNG_VID = 0x04E8;   // Samsung
+    // Expanded Vendor IDs for Android manufacturers
+    const VENDOR_IDS = {
+      GOOGLE: 0x18D1,
+      SAMSUNG: 0x04E8,
+      HUAWEI: 0x12D1,
+      XIAOMI: 0x2717,
+      OPPO: 0x22D9,
+      VIVO: 0x2D95,
+      SONY: 0x054C,
+      LG: 0x1004,
+      MOTOROLA: 0x22B8,
+      HTC: 0x0BB4,
+      ONEPLUS: 0x2A70,
+      LENOVO: 0x17EF,
+      ASUS: 0x0B05,
+      ZTE: 0x19D2,
+      NOKIA: 0x2E04,
+    };
+
     const AOA_ACCESSORY_PID = 0x2D00;
     const AOA_ACCESSORY_ADB_PID = 0x2D01;
     const AOA_AUDIO_PID = 0x2D02;
     const AOA_AUDIO_ADB_PID = 0x2D03;
     const AOA_ACCESSORY_AUDIO_PID = 0x2D04;
     const AOA_ACCESSORY_AUDIO_ADB_PID = 0x2D05;
-    const SAMSUNG_GALAXY_PID = 0x6860; // Common Samsung PID
+    const SAMSUNG_GALAXY_PID = 0x6860;
 
     const AOA_GET_PROTOCOL = 51;
     const AOA_SEND_IDENT = 52;
@@ -66,6 +83,7 @@
       const [device, setDevice] = React.useState(null);
       const [aoaVersion, setAoaVersion] = React.useState(null);
       const [isConnected, setIsConnected] = React.useState(false);
+      const [deviceId, setDeviceId] = React.useState(null);
 
       const addLog = (message) => {
         setLogs((prev) => [...prev, message]);
@@ -74,6 +92,12 @@
       const handleInputChange = (e) => {
         const { name, value } = e.target;
         setAccessory((prev) => ({ ...prev, [name]: value }));
+      };
+
+      const getVendorName = (vendorId) => {
+        return Object.keys(VENDOR_IDS).find(
+          (key) => VENDOR_IDS[key] === vendorId
+        ) || "Unknown Vendor";
       };
 
       const connectDevice = async () => {
@@ -85,14 +109,19 @@
 
         try {
           const device = await navigator.usb.requestDevice({
-            filters: [
-              { vendorId: AOA_ACCESSORY_VID }, // Google
-              { vendorId: AOA_SAMSUNG_VID },  // Samsung
-            ],
+            filters: Object.values(VENDOR_IDS).map((vid) => ({ vendorId: vid })),
           });
           await device.open();
           setDevice(device);
-          addLog(`Connected to device: ${device.productName} (VID: ${device.vendorId.toString(16)}, PID: ${device.productId.toString(16)})`);
+
+          // Generate or retrieve device ID
+          const uniqueId = device.serialNumber || `${device.vendorId}:${device.productId}:${Date.now()}`;
+          setDeviceId(uniqueId);
+
+          addLog(`Connected to device: ${device.productName || "Unknown Device"}`);
+          addLog(`Vendor: ${getVendorName(device.vendorId)} (VID: 0x${device.vendorId.toString(16).padStart(4, "0")})`);
+          addLog(`Product ID: 0x${device.productId.toString(16).padStart(4, "0")}`);
+          addLog(`Device ID: ${uniqueId}`);
           setIsConnected(true);
           await initializeAccessory(device);
         } catch (error) {
@@ -100,8 +129,8 @@
           if (error.message.includes("Access denied")) {
             addLog("Access denied error detected. Troubleshooting steps:");
             addLog("1. Restart your PC to close any interfering programs.");
-            addLog("2. On Linux: Create /etc/udev/rules.d/50-usb.rules with 'SUBSYSTEM==\"usb\", ATTR{idVendor}==\"04e8\", MODE=\"0666\", GROUP=\"plugdev\"', then run 'sudo udevadm control --reload-rules && sudo udevadm trigger'. Add user to 'plugdev': 'sudo usermod -aG plugdev $USER'. Log out/in.");
-            addLog("3. On Windows: Download Zadig (zadig.akeo.ie), select your Samsung device, install WinUSB driver.");
+            addLog("2. On Linux: Create /etc/udev/rules.d/50-usb.rules with 'SUBSYSTEM==\"usb\", ATTR{idVendor}==\"*\", MODE=\"0666\", GROUP=\"plugdev\"', then run 'sudo udevadm control --reload-rules && sudo udevadm trigger'. Add user to 'plugdev': 'sudo usermod -aG plugdev $USER'. Log out/in.");
+            addLog("3. On Windows: Download Zadig (zadig.akeo.ie), select your device, install WinUSB driver.");
             addLog("4. On macOS: Ensure no other apps (e.g., Samsung Smart Switch) are using the device; restart if needed.");
             addLog("5. Unplug/replug the device, ensure USB debugging is off, and try again. Site must be on HTTPS.");
             addLog("Falling back to mock mode due to access error.");
@@ -114,10 +143,19 @@
       };
 
       const simulateDeviceConnection = () => {
-        setDevice({ productName: "Mock Samsung Galaxy", vendorId: AOA_SAMSUNG_VID, productId: SAMSUNG_GALAXY_PID });
+        const mockDevice = {
+          productName: "Mock Samsung Galaxy",
+          vendorId: VENDOR_IDS.SAMSUNG,
+          productId: SAMSUNG_GALAXY_PID,
+          serialNumber: "MOCK123456789",
+          mock: true,
+        };
+        setDevice(mockDevice);
+        setDeviceId(mockDevice.serialNumber);
         setIsConnected(true);
         addLog("Simulating device connection with mock data.");
-        initializeAccessory({ mock: true });
+        addLog(`Mock Device ID: ${mockDevice.serialNumber}`);
+        initializeAccessory(mockDevice);
       };
 
       const initializeAccessory = async (device) => {
@@ -251,6 +289,7 @@
           }
         }
         setDevice(null);
+        setDeviceId(null);
         setIsConnected(false);
         setAoaVersion(null);
       };
@@ -289,6 +328,12 @@
               Disconnect
             </button>
           </div>
+          {deviceId && (
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold">Device ID</h2>
+              <p className="font-mono text-sm">{deviceId}</p>
+            </div>
+          )}
           <div className="bg-gray-800 text-white p-4 rounded h-64 overflow-y-auto">
             <h2 className="text-lg font-semibold mb-2">Logs</h2>
             {logs.map((log, index) => (
