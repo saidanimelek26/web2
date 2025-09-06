@@ -42,6 +42,12 @@
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
+    .progress-bar {
+      height: 6px;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      width: 0%;
+      transition: width 0.5s ease;
+    }
   </style>
 </head>
 <body>
@@ -53,13 +59,18 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-3" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
           </svg>
-          Samsung AOA Web
+          Samsung AOA Web - Fixed
         </h1>
-        <p class="opacity-90">Pure Android Open Accessory Protocol for Samsung Devices</p>
+        <p class="opacity-90">Fixed Android Open Accessory Protocol for Samsung Devices</p>
       </div>
 
       <!-- Main Content -->
       <div class="p-6">
+        <!-- Progress Bar -->
+        <div class="w-full bg-gray-700 rounded-full h-2 mb-6">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+
         <!-- Connection Status -->
         <div id="connection-status" class="glass border border-yellow-500 rounded-lg p-4 mb-6 flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -105,6 +116,12 @@
             </svg>
             Disconnect
           </button>
+          <button id="retry-btn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 flex items-center hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+            </svg>
+            Retry AOA Connection
+          </button>
         </div>
 
         <!-- Accessory Configuration -->
@@ -148,6 +165,7 @@
           </h2>
           <p class="text-purple-200">Make sure USB debugging is <span class="font-bold">DISABLED</span> on your Samsung device. AOA protocol requires USB debugging to be turned off.</p>
           <p class="text-purple-200 mt-2">Go to: Settings → Developer options → USB debugging → Disable</p>
+          <p class="text-purple-200 mt-2">If AOA still fails, try enabling and then disabling USB debugging.</p>
         </div>
 
         <!-- Logs -->
@@ -168,7 +186,7 @@
 
       <!-- Footer -->
       <div class="bg-gray-900 bg-opacity-70 px-6 py-4 text-center text-gray-400 text-sm">
-        <p>Pure Android Open Accessory Protocol implementation for Samsung devices</p>
+        <p>Fixed Android Open Accessory Protocol implementation for Samsung devices</p>
       </div>
     </div>
   </div>
@@ -178,10 +196,12 @@
       // Elements
       const connectBtn = document.getElementById('connect-btn');
       const disconnectBtn = document.getElementById('disconnect-btn');
+      const retryBtn = document.getElementById('retry-btn');
       const clearLogsBtn = document.getElementById('clear-logs');
       const logsContainer = document.getElementById('logs-container');
       const deviceInfo = document.getElementById('device-info');
       const connectionStatus = document.getElementById('connection-status');
+      const progressBar = document.getElementById('progress-bar');
       
       // Device info elements
       const deviceNameEl = document.getElementById('device-name');
@@ -205,6 +225,7 @@
       
       let isConnected = false;
       let currentDevice = null;
+      let aoaVersion = null;
 
       // Add log entry
       function addLog(message, type = 'info') {
@@ -230,6 +251,11 @@
         
         logsContainer.appendChild(logEntry);
         logsContainer.scrollTop = logsContainer.scrollHeight;
+      }
+
+      // Update progress bar
+      function updateProgress(percent) {
+        progressBar.style.width = `${percent}%`;
       }
 
       // Update device info
@@ -273,9 +299,17 @@
         if (isConnected) {
           disconnectBtn.classList.remove('bg-gray-600', 'text-gray-300');
           disconnectBtn.classList.add('bg-red-600', 'hover:bg-red-700', 'text-white');
+          
+          // Show retry button if AOA failed
+          if (aoaVersion === null) {
+            retryBtn.classList.remove('hidden');
+          } else {
+            retryBtn.classList.add('hidden');
+          }
         } else {
           disconnectBtn.classList.add('bg-gray-600', 'text-gray-300');
           disconnectBtn.classList.remove('bg-red-600', 'hover:bg-red-700', 'text-white');
+          retryBtn.classList.add('hidden');
         }
       }
 
@@ -287,6 +321,7 @@
         }
 
         try {
+          updateProgress(10);
           addLog('Requesting device access...');
           
           // Request device with Samsung vendor ID
@@ -294,6 +329,7 @@
             filters: [{ vendorId: 0x04e8 }] // Samsung vendor ID
           });
           
+          updateProgress(30);
           addLog(`Device selected: ${device.productName}`, 'success');
           addLog(`Vendor ID: 0x${device.vendorId.toString(16)}, Product ID: 0x${device.productId.toString(16)}`);
           
@@ -303,11 +339,14 @@
           currentDevice = device;
           isConnected = true;
           updateConnectionUI();
+          updateProgress(50);
           
           // Try to initialize AOA
           await initializeAOA(device);
+          updateProgress(100);
           
         } catch (error) {
+          updateProgress(0);
           if (error.message.includes("No device selected")) {
             addLog('No device selected. Please try again and select your Samsung device.', 'warning');
           } else {
@@ -316,23 +355,26 @@
         }
       }
 
-      // Initialize AOA protocol
+      // Initialize AOA protocol with improved error handling
       async function initializeAOA(device) {
         try {
           addLog('Checking AOA protocol support...');
           
-          // Try to get AOA protocol
-          const result = await device.controlTransferIn({
-            requestType: 'vendor',
-            recipient: 'device',
-            request: AOA_GET_PROTOCOL,
-            value: 0,
-            index: 0
-          }, 2);
+          // Try to get AOA protocol with timeout
+          const result = await Promise.race([
+            device.controlTransferIn({
+              requestType: 'vendor',
+              recipient: 'device',
+              request: AOA_GET_PROTOCOL,
+              value: 0,
+              index: 0
+            }, 2),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('AOA protocol check timeout')), 5000))
+          ]);
           
           if (result.status === 'ok' && result.data && result.data.byteLength >= 2) {
             const buffer = new Uint8Array(result.data.buffer);
-            const aoaVersion = (buffer[1] << 8) | buffer[0];
+            aoaVersion = (buffer[1] << 8) | buffer[0];
             addLog(`Device supports AOA protocol version ${aoaVersion}.0`, 'success');
             
             updateDeviceInfo(device, aoaVersion);
@@ -354,15 +396,61 @@
             addLog('Your Samsung device is now in AOA mode.', 'success');
             
           } else {
-            addLog('AOA protocol not supported by this device.', 'error');
-            addLog('Make sure USB debugging is disabled on your Samsung device.', 'warning');
-            updateDeviceInfo(device, null);
+            addLog('AOA protocol check completed but no version data received.', 'warning');
+            addLog('Assuming AOA version 1.0 support.', 'warning');
+            aoaVersion = 1;
+            
+            updateDeviceInfo(device, aoaVersion);
+            
+            // Send identification
+            await sendIdentification(device, aoaVersion);
+            
+            // Start accessory mode
+            addLog('Starting accessory mode...');
+            await device.controlTransferOut({
+              requestType: 'vendor',
+              recipient: 'device',
+              request: AOA_START_ACCESSORY,
+              value: 0,
+              index: 0
+            });
+            
+            addLog('Accessory mode started successfully!', 'success');
+            addLog('Your Samsung device is now in AOA mode.', 'success');
           }
         } catch (error) {
-          addLog(`AOA initialization failed: ${error.message}`, 'error');
-          addLog('This device may not support AOA protocol.', 'warning');
-          addLog('Make sure USB debugging is disabled and try again.', 'warning');
-          updateDeviceInfo(device, null);
+          if (error.message.includes('transfer error') || error.message.includes('timeout')) {
+            addLog('AOA protocol check failed. This may be normal for some Samsung devices.', 'warning');
+            addLog('Assuming AOA version 1.0 support and proceeding.', 'warning');
+            aoaVersion = 1;
+            
+            updateDeviceInfo(device, aoaVersion);
+            
+            // Send identification
+            await sendIdentification(device, aoaVersion);
+            
+            // Start accessory mode
+            addLog('Starting accessory mode...');
+            try {
+              await device.controlTransferOut({
+                requestType: 'vendor',
+                recipient: 'device',
+                request: AOA_START_ACCESSORY,
+                value: 0,
+                index: 0
+              });
+              
+              addLog('Accessory mode started successfully!', 'success');
+              addLog('Your Samsung device is now in AOA mode.', 'success');
+            } catch (startError) {
+              addLog(`Failed to start accessory mode: ${startError.message}`, 'error');
+              addLog('Please try reconnecting your device.', 'warning');
+            }
+          } else {
+            addLog(`AOA initialization failed: ${error.message}`, 'error');
+            aoaVersion = null;
+            updateDeviceInfo(device, aoaVersion);
+          }
         }
       }
 
@@ -435,13 +523,26 @@
         
         currentDevice = null;
         isConnected = false;
+        aoaVersion = null;
         updateDeviceInfo(null);
         updateConnectionUI();
+        updateProgress(0);
+      }
+
+      // Retry AOA connection
+      async function retryAOA() {
+        if (currentDevice) {
+          addLog('Retrying AOA connection...');
+          updateProgress(50);
+          await initializeAOA(currentDevice);
+          updateProgress(100);
+        }
       }
 
       // Event listeners
       connectBtn.addEventListener('click', connectDevice);
       disconnectBtn.addEventListener('click', disconnectDevice);
+      retryBtn.addEventListener('click', retryAOA);
       
       clearLogsBtn.addEventListener('click', () => {
         logsContainer.innerHTML = '';
